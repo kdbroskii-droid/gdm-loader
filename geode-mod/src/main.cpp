@@ -13,13 +13,13 @@ class $modify(GDMMenuLayer, MenuLayer) {
 
         auto menu = this->getChildByID("bottom-menu");
         if (!menu) {
-            log::warn("GDM Loader: bottom-menu node was not found; button skipped.");
+            log::warn("GD M: bottom-menu node was not found; button skipped.");
             return true;
         }
 
         auto sprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
         if (!sprite) {
-            log::warn("GDM Loader: could not create button sprite; button skipped.");
+            log::warn("GD M: could not create button sprite; button skipped.");
             return true;
         }
 
@@ -29,20 +29,20 @@ class $modify(GDMMenuLayer, MenuLayer) {
             menu_selector(GDMMenuLayer::onOpenGDM)
         );
         if (!button) {
-            log::warn("GDM Loader: could not create menu button.");
+            log::warn("GD M: could not create menu button.");
             return true;
         }
 
         button->setID("gdm-loader-button"_spr);
         menu->addChild(button);
         menu->updateLayout();
-        log::info("GDM Loader Geode integration initialized.");
+        log::info("GD M Geode integration initialized.");
         return true;
     }
 
     void onOpenGDM(CCObject*) {
         FLAlertLayer::create(
-            "GDM Loader",
+            "GD M",
             "Android Geode integration is active.\n\n"
             "Geode remains responsible for loading native .geode packages. "
             "The Judsz bridge and in-game catalog are not connected yet.\n\n"
