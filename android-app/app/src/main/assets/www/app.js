@@ -92,7 +92,61 @@ $("#export-project").addEventListener("click",()=>{const title=prompt("Mod proje
 $("#code").addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="s"){e.preventDefault();saveScript()}});
 $("#code").addEventListener("input",()=>{$("#lines").textContent=$("#code").value.split(/\r?\n/).length+" lines";$("#editor-status").textContent="Unsaved changes";});$("#code").addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key==="Enter"){e.preventDefault();run()}if(e.key==="Tab"){e.preventDefault();const t=e.target,start=t.selectionStart,end=t.selectionEnd;t.setRangeText("    ",start,end,"end");$("#lines").textContent=t.value.split(/\r?\n/).length+" lines"}});$("#reset").addEventListener("click",()=>{if(!confirm("Replace the editor contents with the starter example?"))return;$("#code").value=starter;currentScriptName="starter.judsz";$("#lines").textContent=$("#code").value.split("\n").length+" lines";checkScript()});$("#save-script").addEventListener("click",saveScript);$("#new-script").addEventListener("click",()=>{currentScriptName="";$("#script-select").value="";$("#code").value='mod "New Mod":\n    on_level_start:\n        show_message("Hello Judsz")\n';$("#lines").textContent=$("#code").value.split("\n").length+" lines";checkScript()});$("#script-select").addEventListener("change",e=>{const name=e.target.value;if(!name)return;const saved=state.savedScripts.find(x=>x.name===name);if(saved){currentScriptName=name;$("#code").value=saved.content}else if(examples[name]){currentScriptName=name;$("#code").value=examples[name]}$("#lines").textContent=$("#code").value.split(/\r?\n/).length+" lines";checkScript()});$("#format-script").addEventListener("click",()=>{const formatted=$("#code").value.split(/\r?\n/).map(line=>line.trim()?line.replace(/^\s+/,"    ".repeat(Math.min(2,Math.floor((line.match(/^\s*/)||[""])[0].length/4)))): "").join("\n");$("#code").value=formatted;$("#lines").textContent=formatted.split("\n").length+" lines";checkScript();toast("Basic indentation formatting applied.")});$("#lint-script").addEventListener("click",checkScript);$("#export-script").addEventListener("click",()=>download((currentScriptName||"script.judsz").replace(/[^a-z0-9_.-]/gi,"_"),$("#code").value,"text/plain;charset=utf-8"));$("#import-script").addEventListener("click",()=>$("#script-file").click());$("#script-file").addEventListener("change",async e=>{const f=e.target.files?.[0];if(f){if(f.size>50000){toast("Judsz file exceeds 50 KB.");return}$("#code").value=await f.text();currentScriptName=f.name.endsWith(".judsz")?f.name:f.name+".judsz";$("#lines").textContent=$("#code").value.split(/\r?\n/).length+" lines";checkScript()}e.target.value=""});$("#clear-console").addEventListener("click",()=>$("#output").textContent="Console cleared.");$("#backup").addEventListener("click",backup);$("#export").addEventListener("click",()=>download("gdm-loader-recovery.json",snap()));$("#import").addEventListener("change",e=>importFile(e.target.files?.[0]));
 $("#profile-form").addEventListener("submit",e=>{e.preventDefault();state.profile.name=$("#name").value.trim().slice(0,32)||"Guest profile";state.profile.pin=$("#pin").value;persist();counts();toast("Local profile saved.")});$("#gd-form").addEventListener("submit",e=>{e.preventDefault();state.profile.gdUsername=$("#gdname").value.trim().slice(0,40);persist();counts();toast("Username saved. Sign in inside Geometry Dash.")});$("#safe").addEventListener("change",e=>{state.settings.safeMode=e.target.checked;persist();counts();toast("Safe mode "+(e.target.checked?"enabled":"disabled; runtime stays restricted")+".")});$("#auto-update-check").addEventListener("change",e=>{state.settings.autoUpdateCheck=e.target.checked;persist();toast(e.target.checked?"Automatic catalog checks enabled.":"Automatic catalog checks disabled.")});$("#open-catalog").addEventListener("click",()=>window.open("./catalog.json","_blank","noopener"));$("#clear-data").addEventListener("click",()=>{if(!confirm("Clear all GD M data in this browser? Export a recovery file first if needed."))return;localStorage.removeItem(KEY);state=structuredClone(defaults);persist();counts();drawBackups();$("#code").value=starter;renderScripts();loadCatalog();toast("Local data cleared.")});$("#menu").addEventListener("click",()=>$(".sidebar").classList.toggle("open"));
+function androidBridge(){return window.GDMAndroidBridge||null}
+function refreshWorkspaceStatus(){
+ const bridge=androidBridge(),status=$("#workspace-status"),files=$("#workspace-files");
+ if(!bridge){if(status)status.textContent="Folder access is available in the installed Android app; browser preview has no Android file permission.";if(files)files.textContent="Open GD M on Android to connect a folder.";return}
+ try{
+  const has=bridge.hasWorkspaceAccess();
+  if(status)status.textContent=has?"Connected folder: "+(bridge.getWorkspaceName()||"Selected folder"):"No folder selected. Android will ask you to choose a folder on first launch.";
+  if(files&&!has)files.textContent="Choose a folder to list its files.";
+  if(has)refreshWorkspaceFiles();
+ }catch(e){if(status)status.textContent="Folder status unavailable: "+e.message}
+}
+function refreshWorkspaceFiles(){
+ const bridge=androidBridge(),box=$("#workspace-files");if(!box)return;
+ if(!bridge){box.textContent="Folder browser requires the Android app.";return}
+ try{
+  const items=JSON.parse(bridge.listWorkspaceFiles()||"[]");
+  if(!items.length){box.textContent="The selected folder is empty, or Android did not return any files.";return}
+  box.innerHTML=items.map(item=>'<div class="workspace-file"><span>'+(item.directory?"📁 ":"📄 ")+esc(item.path)+(item.directory?"":' <small>('+Math.max(0,Number(item.size)||0)+' bytes)</small>')+'</span>'+(item.directory?'':'<button class="mini" data-workspace-open="'+esc(item.path)+'">Open</button>')+'</div>').join("");
+ }catch(e){box.textContent="Could not list folder files: "+e.message}
+}
+window.workspacePickerResult=function(result){
+ if($("#workspace-status"))$("#workspace-status").textContent=result.message||"Folder picker returned.";
+ toast(result.message||"Folder picker returned.");
+ refreshWorkspaceStatus();
+};
+$("#choose-workspace")?.addEventListener("click",()=>{
+ const bridge=androidBridge();
+ if(!bridge){toast("Install the Android app to grant folder access.");return}
+ try{bridge.chooseWorkspaceFolder()}catch(e){toast("Could not open folder picker: "+e.message)}
+});
+$("#refresh-workspace")?.addEventListener("click",refreshWorkspaceFiles);
+$("#save-workspace-script")?.addEventListener("click",()=>{
+ const bridge=androidBridge();if(!bridge){toast("Save to device folder requires the Android app.");return}
+ if(!bridge.hasWorkspaceAccess()){bridge.chooseWorkspaceFolder();toast("Choose a folder first.");return}
+ const suggested=(currentScriptName||"main.judsz").replace(/[^a-z0-9_.-]/gi,"-");
+ const name=prompt("Save script into the selected folder as:",suggested);if(!name)return;
+ const clean=name.trim().replace(/^\/+|\.\.(?:\/|$)/g,"").replace(/[\\:*?"<>|]/g,"-");
+ if(!clean||clean.includes("/")){toast("Use a single filename without folders.");return}
+ try{const result=JSON.parse(bridge.writeWorkspaceFile(clean,$("#code").value));toast(result.message||"Save finished.");refreshWorkspaceFiles()}catch(e){toast("Could not save file: "+e.message)}
+});
+$("#workspace-files")?.addEventListener("click",e=>{
+ const button=e.target.closest("[data-workspace-open]");if(!button)return;
+ const path=button.dataset.workspaceOpen,bridge=androidBridge();if(!bridge)return;
+ try{
+  const result=JSON.parse(bridge.readWorkspaceFile(path));
+  if(result.error){toast(result.error);return}
+  if(/\.(judsz|txt|md)$/i.test(path)){
+   if(result.content.length>50000){toast("This editor limits imported files to 50 KB.");return}
+   $("#code").value=result.content;currentScriptName=path.split("/").pop();$("#lines").textContent=result.content.split(/\r?\n/).length+" lines";checkScript();go("judsz");toast("Opened "+path+" in Judsz Studio.");
+  }else{
+   const w=window.open("","_blank","noopener");if(w){w.document.write("<pre style='white-space:pre-wrap;overflow-wrap:anywhere;font:14px monospace;padding:16px'></pre>");w.document.querySelector("pre").textContent=result.content;w.document.title=path}else toast("File read successfully: "+path)
+  }
+ }catch(err){toast("Could not open file: "+err.message)}
+});
 $("#cloud-url").value=cloudConfig.url||"";$("#cloud-key").value=cloudConfig.key||"";$("#cloud-config-form").addEventListener("submit",e=>{e.preventDefault();try{saveCloudConfig()}catch(err){setCloudStatus(err.message)}});$("#cloud-auth-form").addEventListener("submit",async e=>{e.preventDefault();try{await login()}catch(err){setCloudStatus(err.message)}});$("#cloud-login").addEventListener("click",async e=>{e.preventDefault();try{await login()}catch(err){setCloudStatus(err.message)}});$("#cloud-register").addEventListener("click",async()=>{try{await register()}catch(err){setCloudStatus(err.message)}});$("#cloud-sync").addEventListener("click",async()=>{try{await cloudProfileSync();setCloudStatus("Workspace synced to your GD M cloud account.")}catch(err){setCloudStatus(err.message)}});$("#cloud-logout").addEventListener("click",cloudLogout);$("#continue-guest").addEventListener("click",()=>{go("home");toast("Continuing as guest. You can sign in later from Profile & account.")});
 let promptEvent=null;addEventListener("beforeinstallprompt",e=>{e.preventDefault();promptEvent=e;$("#install-pwa").classList.remove("hidden")});$("#install-pwa").addEventListener("click",async()=>{if(!promptEvent)return;promptEvent.prompt();await promptEvent.userChoice;promptEvent=null;$("#install-pwa").classList.add("hidden")});if("serviceWorker"in navigator&&(location.protocol==="https:"||location.hostname==="localhost"))addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(console.warn));
-$("#code").value=state.script||starter;$("#lines").textContent=$("#code").value.split("\n").length+" lines";renderScripts();counts();drawBackups();loadCatalog();restoreCloudSession();refreshGameDetection();$("#launch-game")?.addEventListener("click",()=>{try{if(!window.GDMAndroidBridge?.launchGeometryDash?.())toast("Could not open Geometry Dash.")}catch{toast("Could not open Geometry Dash.")}});document.addEventListener("visibilitychange",()=>{if(!document.hidden){refreshGameDetection();if(state.settings.autoUpdateCheck!==false)loadCatalog(true)}});setInterval(()=>{if(state.settings.autoUpdateCheck!==false&&!document.hidden)loadCatalog(true)},15*60*1000);
+$("#code").value=state.script||starter;$("#lines").textContent=$("#code").value.split("\n").length+" lines";renderScripts();counts();drawBackups();loadCatalog();restoreCloudSession();refreshGameDetection();refreshWorkspaceStatus();$("#launch-game")?.addEventListener("click",()=>{try{if(!window.GDMAndroidBridge?.launchGeometryDash?.())toast("Could not open Geometry Dash.")}catch{toast("Could not open Geometry Dash.")}});document.addEventListener("visibilitychange",()=>{if(!document.hidden){refreshGameDetection();if(state.settings.autoUpdateCheck!==false)loadCatalog(true)}});setInterval(()=>{if(state.settings.autoUpdateCheck!==false&&!document.hidden)loadCatalog(true)},15*60*1000);
 })();
