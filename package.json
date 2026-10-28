@@ -1,0 +1,1 @@
+{"name":"gdm-loader","version":"0.1.0","private":true,"type":"module","description":"Geometry Dash mod manager companion and Judsz editor PWA","scripts":{"test":"node tests/smoke-test.mjs","serve":"python -m http.server 8080"}}
