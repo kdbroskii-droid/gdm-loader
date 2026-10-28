@@ -6,7 +6,7 @@ for (const f of [
   "android-app/settings.gradle.kts", "android-app/build.gradle.kts",
   "android-app/app/build.gradle.kts", "android-app/app/src/main/AndroidManifest.xml",
   "android-app/app/src/main/java/com/gdmloader/android/MainActivity.kt",
-  "android-app/app/src/main/assets/www/index.html", "android-app/app/src/main/assets/www/app.js",
+  "android-app/app/src/main/assets/www/index.html", "android-app/app/src/main/assets/www/app.js", "android-app/app/src/main/assets/www/cloud-config.js",
   "manifest.webmanifest", "sw.js", "assets/icon.svg",
   "geode-mod/CMakeLists.txt", "geode-mod/mod.json",
   "geode-mod/src/main.cpp", "geode-mod/README.md", "cloud-config.js", "backend/supabase-schema.sql"
@@ -21,7 +21,7 @@ const native = readFileSync("geode-mod/src/main.cpp", "utf8");
 const androidManifest = readFileSync("android-app/app/src/main/AndroidManifest.xml", "utf8");
 const androidMain = readFileSync("android-app/app/src/main/java/com/gdmloader/android/MainActivity.kt", "utf8");
 const androidHtml = readFileSync("android-app/app/src/main/assets/www/index.html", "utf8");
-const androidJs = readFileSync("android-app/app/src/main/assets/www/app.js", "utf8");
+const androidJs = readFileSync("android-app/app/src/main/assets/www/app.js", "utf8");\nconst cloudSql = readFileSync("backend/supabase-schema.sql", "utf8");\nconst bundledCloudConfig = readFileSync("android-app/app/src/main/assets/www/cloud-config.js", "utf8");
 
 assert.match(html, /id="page-judsz"/);
 assert.match(html, /id="page-saves"/);
@@ -38,5 +38,5 @@ assert.match(androidMain, /getPackageInfo/);
 assert.match(androidMain, /launchGeometryDash/);
 assert.match(js, /function refreshGameDetection\(\)/);
 assert.match(androidHtml, /id="game-status"/);
-assert.equal(androidJs, js, "Bundled Android UI must match root app.js");
+assert.equal(androidJs, js, "Bundled Android UI must match root app.js");\nassert.match(cloudSql, /enable row level security/i);\nassert.match(cloudSql, /auth\.uid\(\) = user_id/);\nassert.match(bundledCloudConfig, /GDM_CLOUD_DEFAULTS/);
 console.log("GDM Loader PWA and Android Geode-source smoke tests passed.");
