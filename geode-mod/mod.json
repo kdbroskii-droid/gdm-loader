@@ -1,0 +1,18 @@
+{
+  "geode": "v5.11.2",
+  "gd": {
+    "android": "2.2081"
+  },
+  "id": "kdbroskii.gdm-loader",
+  "name": "GDM Loader",
+  "version": "0.1.0",
+  "developer": "kdbroskii-droid",
+  "description": "Android-first Geometry Dash companion UI and Judsz runtime prototype built on Geode.",
+  "repository": "https://github.com/kdbroskii-droid/gdm-loader",
+  "tags": [
+    "utility",
+    "developer",
+    "interface"
+  ],
+  "dependencies": {}
+}
