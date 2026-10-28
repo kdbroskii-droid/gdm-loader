@@ -88,7 +88,7 @@ class MainActivity : Activity() {
 
     private inner class GameDetectorBridge {
         @JavascriptInterface
-        fun isGeometryDashInstalled(): Boolean = isGeometryDashInstalled()
+        fun isGeometryDashInstalled(): Boolean = this@MainActivity.isGeometryDashInstalled()
 
         @JavascriptInterface
         fun getGeometryDashVersion(): String = geometryDashVersion()
