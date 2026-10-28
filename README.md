@@ -18,7 +18,7 @@ geode build -p android64
 
 For a 32-bit game build, use `android32`. The built `.geode` package is normally placed in `build-android64/` or `build-android32/`. Install it using Geode's supported Android workflow. The documented Android mods directory is `Android/media/com.geode.launcher/game/geode/mods/`.
 
-Official documentation: urlGeode SDK docshttps://docs.geode-sdk.org and urlGeode Android mod build guidehttps://github.com/poweredbypie/geode.docs/blob/main/getting-started/create-mod.md.
+Official documentation: [Geode SDK docs](https://docs.geode-sdk.org) and [Geode Android mod build guide](https://github.com/poweredbypie/geode.docs/blob/main/getting-started/create-mod.md).
 
 ## Current native capabilities
 
