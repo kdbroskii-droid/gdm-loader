@@ -1,4 +1,4 @@
-name: Validate GDM Loader Android PWA
+name: Validate GDM Loader Android project
 on:
   push:
   pull_request:
@@ -14,7 +14,8 @@ jobs:
         with:
           node-version: 22
       - run: npm test
-      - name: Validate JSON assets
+      - name: Validate project JSON
         run: |
           node -e "JSON.parse(require('fs').readFileSync('catalog.json','utf8'))"
           node -e "JSON.parse(require('fs').readFileSync('manifest.webmanifest','utf8'))"
+          node -e "JSON.parse(require('fs').readFileSync('geode-mod/mod.json','utf8'))"
