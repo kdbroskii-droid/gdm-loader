@@ -1,33 +1,49 @@
-# GDM Loader — Android
+# GDM Loader — Android + Geode
 
-Android-only companion app prototype for a Geometry Dash mod catalog and Judsz script editor.
+GDM Loader is an Android-first Geometry Dash modding project with two parts:
 
-## Android target
-The current implementation is a responsive installable Progressive Web App (PWA), usable in an Android browser and installable from a HTTPS host. It is not yet a native APK/AAB. Windows/Linux desktop builds are out of scope.
+- **Native Geode module** in `geode-mod/`: a real Geode mod project that adds a GDM Loader button to Geometry Dash's main menu. This is the first native integration milestone.
+- **Companion PWA** at the repository root: responsive mod catalog prototype, local profile UI, metadata recovery, and restricted Judsz demo editor.
 
-## Included
-- Online JSON catalog with local install-state labels ("Already installed").
-- Judsz editor and restricted demo interpreter for `show_message`, `jump`, `rocketup`, and `set_player_speed`.
-- Local profile and Geometry Dash username note.
-- Exportable/importable GDM Loader metadata recovery points.
-- Safe mode toggle, dependency prompts, offline shell and smoke-test CI.
+## Native Android build
 
-## Important limitations
-- This is not a native game-mod loader yet. The independent UI does not inject code into Geometry Dash; in-game hooks require a compatible, version-specific native integration.
-- The catalog entries are illustrative metadata only. They do not modify the game.
-- Browser/PWA storage cannot scan arbitrary installed programs or freely access Geometry Dash's private Android save directory. Recovery points currently contain GDM Loader metadata, not the game's save files.
-- The local profile is not a remote Judsz account. There is no account backend or cloud sync.
-- Do not enter your Geometry Dash password in this app. Sign in or register inside the game itself; this app has no official RobTop authentication integration.
-- Catalog downloads are data only; downloaded code is never automatically executed.
+The native module targets Geometry Dash Android 2.2081 and Geode v5.11.2 in `geode-mod/mod.json`. Verify the installed Geometry Dash version and the current Geode release before building; these compatibility values must be tested on the actual device.
 
-## Run on Android
-1. Host this repository on a static HTTPS host.
-2. Open its hosted page in Chrome or another supported Android browser.
-3. Use the browser menu's **Install app** or **Add to Home screen** action.
+Install the Geode CLI and Android NDK, then from `geode-mod/` run:
 
-For local development on a computer, run `python -m http.server 8080` and open the page on that computer. This is only a development server; use HTTPS for normal Android PWA installation.
+```sh
+geode sdk install-binaries -p android64
+geode build -p android64
+```
+
+For a 32-bit game build, use `android32`. The built `.geode` package is normally placed in `build-android64/` or `build-android32/`. Install it using Geode's supported Android workflow. The documented Android mods directory is `Android/media/com.geode.launcher/game/geode/mods/`.
+
+Official documentation: urlGeode SDK docshttps://docs.geode-sdk.org and urlGeode Android mod build guidehttps://github.com/poweredbypie/geode.docs/blob/main/getting-started/create-mod.md.
+
+## Current native capabilities
+
+- Uses Geode's native mod lifecycle.
+- Adds a main-menu button and opens a status popup.
+- Leaves actual native mod installation, dependency resolution, and updates to Geode's own mod manager.
+- Does **not** yet install/manage other mods from a custom GDM Loader browser.
+- Does **not** yet execute Judsz scripts in-game or map `jump()` / `rocketup()` to game events.
+- Does **not** access or overwrite Geometry Dash save files.
+- Does **not** provide an online Judsz account backend.
+
+The companion PWA is not yet connected to the native module. PWA recovery currently includes GDM Loader metadata only, not Geometry Dash's private save data. Its local profile is not an online account.
+
+## Android companion PWA
+
+Serve the repository root over HTTPS to install it from a supported Android browser. For local development:
+
+```sh
+python -m http.server 8080
+```
+
+Then open `http://localhost:8080`. Service workers require HTTPS or localhost.
 
 ## Judsz example
+
 ```judsz
 mod "Starter Mod":
     on_level_start:
@@ -35,13 +51,17 @@ mod "Starter Mod":
         jump()
         rocketup()
 ```
-These actions are simulated by the editor. They do not control Geometry Dash.
 
-## Roadmap
-1. Publish and test the Android PWA on real devices.
-2. If a native APK is needed, package a mobile UI with an Android project and validate Android SDK/build requirements.
-3. Investigate permitted, version-specific game integration and actual save backup restrictions.
-4. Add real Judsz account registration only with a secure backend, email/account recovery, and clear privacy controls.
-5. Add signed package manifests and release update verification.
+The current PWA demo interpreter simulates these commands; it does not control the game. The native Judsz bridge remains future work.
 
-GDM Loader is an independent community project and is not affiliated with RobTop Games or Geode.
+## Validation
+
+Run the repository's JavaScript smoke tests with Node.js:
+
+```sh
+npm test
+```
+
+This validates file presence and metadata, not the native Android binary. A real native build still needs the Geode CLI, Android NDK, matching SDK binaries, and testing on a compatible Geometry Dash/Geode installation.
+
+GDM Loader is an independent community project and is not affiliated with RobTop Games or the Geode team.
