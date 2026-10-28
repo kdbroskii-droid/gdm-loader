@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "catalogName": "GDM Loader Community Catalog",
+  "mods": [
+    {"id":"practice-tools","name":"Practice Tools","description":"Sample practice-mode utility package entry; metadata only in this MVP.","version":"1.0.0","author":"GDM Community","icon":"◈","tag":"Utility","dependencies":[],"platforms":["windows","linux"]},
+    {"id":"judsz-console","name":"Judsz Console","description":"Example console package demonstrating a Judsz dependency.","version":"0.1.0","author":"Judsz Team","icon":"⌘","tag":"Developer","dependencies":[],"platforms":["windows","linux","android"]},
+    {"id":"level-notes","name":"Level Notes","description":"Illustrative level-note package entry for a future native runtime.","version":"1.0.0","author":"Community","icon":"▤","tag":"Productivity","dependencies":["judsz-console"],"platforms":["windows","linux"]},
+    {"id":"hud-preview","name":"HUD Preview","description":"Example package entry for future HUD layout experiments.","version":"0.2.0","author":"GDM Community","icon":"▣","tag":"Interface","dependencies":[],"platforms":["windows","linux"]},
+    {"id":"judsz-examples","name":"Judsz Examples","description":"Starter snippets for learning the restricted Judsz syntax.","version":"1.0.0","author":"Judsz Team","icon":"⌁","tag":"Learning","dependencies":["judsz-console"],"platforms":["windows","linux","android"]}
+  ]
+}
