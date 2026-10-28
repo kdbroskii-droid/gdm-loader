@@ -25,9 +25,40 @@ function filtered(){const q=$("#search").value.trim().toLowerCase(),f=$("#filter
 async function loadCatalog(silent=false){if(!silent)$("#catalog-status").textContent="Checking catalog…";try{const r=await fetch("./catalog.json",{cache:"no-store"});if(!r.ok)throw Error("catalog request failed");const data=await r.json();if(!Array.isArray(data.mods))throw Error("bad catalog");catalog=data.mods.filter(m=>m&&typeof m.id==="string"&&typeof m.name==="string");$("#catalog-status").textContent=catalog.length+" entries · last checked "+new Date().toLocaleTimeString()+" · sample metadata only";draw($("#modlist"),filtered());draw($("#featured"),catalog.slice(0,3));updateSummary();if(!silent&&state.settings.autoUpdateCheck!==false)toast("Catalog checked for updates.")}catch(e){if(!silent)$("#catalog-status").textContent="Catalog unavailable. Serve over HTTPS or localhost and refresh.";if(!catalog.length){draw($("#modlist"),[]);draw($("#featured"),[])}}}
 function go(page){if(!["home","mods","judsz","saves","account","settings"].includes(page))page="home";$$(".page").forEach(n=>n.classList.toggle("active",n.id==="page-"+page));$$(".nav").forEach(n=>n.classList.toggle("active",n.dataset.page===page));$("#title").textContent=({home:"Overview",mods:"Mod library",judsz:"Judsz editor",saves:"Save recovery",account:"Profile & account",settings:"Settings"})[page];$(".sidebar").classList.remove("open");if(page==="saves")drawBackups()}
 function log(msg,kind=""){const n=document.createElement("div");n.className=kind;n.textContent=msg;$("#output").append(n);$("#output").scrollTop=$("#output").scrollHeight}
-function lint(src){const lines=src.split(/\r?\n/),errors=[];if(lines.length>300)errors.push("File exceeds the 300-line limit.");let blockSeen=false;for(let i=0;i<lines.length;i++){const s=lines[i].trim();if(!s||s.startsWith("#"))continue;if(/\b(import|exec|eval|open|subprocess|require|loadstring)\b|while\s+true/i.test(s))errors.push("Line "+(i+1)+": unsupported/unsafe construct.");if(/^mod\s+["'][^"']+["']\s*:$/.test(s)){if(blockSeen)errors.push("Line "+(i+1)+": only one top-level mod block is supported in this prototype.");blockSeen=true;continue}if(/^(on_level_start|on_level_complete|on_death|on_attempt)\s*:$/.test(s))continue;if(/^(show_message\(\s*(["']).*\2\s*\)|jump\(\s*\)|rocketup\(\s*\)|set_player_speed\(\s*\d+(?:\.\d+)?\s*\))$/.test(s))continue;if(/^\s*(show_message|jump|rocketup|set_player_speed)\b/.test(lines[i]))errors.push("Line "+(i+1)+": check command syntax and indentation.");else if(s.startsWith("mod ")||s.endsWith(":")){}else errors.push("Line "+(i+1)+": unknown statement: "+s.slice(0,50))}return errors}
+function lint(src){
+ const lines=src.split(/\r?\n/),errors=[];
+ if(lines.length>300)errors.push("File exceeds the 300-line limit.");
+ let blockSeen=false;
+ for(let i=0;i<lines.length;i++){
+  const s=lines[i].trim();if(!s||s.startsWith("#"))continue;
+  if(/\b(import|exec|eval|open|subprocess|require|loadstring)\b|while\s+true/i.test(s))errors.push("Line "+(i+1)+": unsupported/unsafe construct.");
+  if(/^mod\s+["'][^"']+["']\s*:$/.test(s)){if(blockSeen)errors.push("Line "+(i+1)+": only one top-level mod block is supported.");blockSeen=true;continue}
+  if(/^(on_level_start|on_level_complete|on_death|on_attempt|on_player_jump|on_checkpoint)\s*:$/.test(s))continue;
+  if(/^(show_message\(\s*(["']).*\2\s*\)|jump\(\s*\)|rocketup\(\s*\)|set_player_speed\(\s*\d+(?:\.\d+)?\s*\)|set_jump_count\(\s*\d+\s*\)|set_gravity\(\s*\d+(?:\.\d+)?\s*\)|set_player_size\(\s*\d+(?:\.\d+)?\s*\)|show_hud\(\s*(?:true|false)\s*\))$/.test(s))continue;
+  if(/^\s*(show_message|jump|rocketup|set_player_speed|set_jump_count|set_gravity|set_player_size|show_hud)\b/.test(lines[i]))errors.push("Line "+(i+1)+": check command syntax and indentation.");
+  else if(s.startsWith("mod ")||s.endsWith(":")){}else errors.push("Line "+(i+1)+": unknown statement: "+s.slice(0,50))
+ }
+ return errors
+}
 function checkScript(){const issues=lint($("#code").value),box=$("#diagnostics");box.textContent=issues.length?issues.join("\n"):"No basic syntax issues found. Runtime remains a safe simulator.";box.className="diagnostics "+(issues.length?"error":"success");$("#editor-status").textContent=issues.length?issues.length+" issue(s)":"Syntax check passed"}
-function run(){const src=$("#code").value,lines=src.split(/\r?\n/);$("#output").textContent="";const issues=lint(src);if(issues.length){issues.forEach(x=>log(x,"err"));return log("Fix the reported issues before running.","err")}let n=0;for(let i=0;i<lines.length;i++){const s=lines[i].trim();if(!s||s.startsWith("#")||/^mod\s+["'][^"']+["']\s*:$/.test(s)||/^(on_level_start|on_level_complete|on_death|on_attempt)\s*:$/.test(s))continue;if(++n>100)return log("Stopped: 100 statement limit reached.","err");let m;if((m=s.match(/^show_message\(\s*(["'])(.*?)\1\s*\)$/)))log("MESSAGE: "+m[2],"ok");else if(/^(jump|rocketup)\(\s*\)$/.test(s))log("SIMULATED ACTION: "+s.slice(0,s.indexOf("(")),"ok");else if((m=s.match(/^set_player_speed\(\s*(\d+(?:\.\d+)?)\s*\)$/))){const v=Number(m[1]);if(v<.1||v>3)log("Line "+(i+1)+": speed must be between 0.1 and 3.","err");else log("SIMULATED ACTION: set_player_speed("+v+")","ok")}else log("Line "+(i+1)+": unknown or unsupported Judsz statement.","err")}log("Finished: "+n+" statement(s) checked; no game code executed.","ok")}
+function run(){
+ const src=$("#code").value,lines=src.split(/\r?\n/);$("#output").textContent="";
+ const issues=lint(src);if(issues.length){issues.forEach(x=>log(x,"err"));return log("Fix the reported issues before running.","err")}
+ let n=0;
+ for(let i=0;i<lines.length;i++){
+  const s=lines[i].trim();if(!s||s.startsWith("#")||/^mod\s+["'][^"']+["']\s*:$/.test(s)||/^(on_level_start|on_level_complete|on_death|on_attempt|on_player_jump|on_checkpoint)\s*:$/.test(s))continue;
+  if(++n>100)return log("Stopped: 100 statement limit reached.","err");let m;
+  if((m=s.match(/^show_message\(\s*(["'])(.*?)\1\s*\)$/)))log("MESSAGE: "+m[2],"ok");
+  else if(/^(jump|rocketup)\(\s*\)$/.test(s))log("PREVIEW ACTION: "+s.slice(0,s.indexOf("(")),"ok");
+  else if((m=s.match(/^set_player_speed\(\s*(\d+(?:\.\d+)?)\s*\)$/))){const v=Number(m[1]);log(v>=.1&&v<=3?"PREVIEW: speed set to "+v:"Line "+(i+1)+": speed must be 0.1–3.",v>=.1&&v<=3?"ok":"err")}
+  else if((m=s.match(/^set_jump_count\(\s*(\d+)\s*\)$/))){const v=Number(m[1]);log(v>=1&&v<=5?"PREVIEW: jump count set to "+v:"Line "+(i+1)+": jump count must be 1–5.",v>=1&&v<=5?"ok":"err")}
+  else if((m=s.match(/^set_gravity\(\s*(\d+(?:\.\d+)?)\s*\)$/))){const v=Number(m[1]);log(v>=.2&&v<=2?"PREVIEW: gravity set to "+v:"Line "+(i+1)+": gravity must be 0.2–2.",v>=.2&&v<=2?"ok":"err")}
+  else if((m=s.match(/^set_player_size\(\s*(\d+(?:\.\d+)?)\s*\)$/))){const v=Number(m[1]);log(v>=.5&&v<=2?"PREVIEW: player size set to "+v:"Line "+(i+1)+": size must be 0.5–2.",v>=.5&&v<=2?"ok":"err")}
+  else if((m=s.match(/^show_hud\(\s*(true|false)\s*\)$/)))log("PREVIEW: HUD "+(m[1]==="true"?"enabled":"hidden"),"ok");
+  else log("Line "+(i+1)+": unknown or unsupported Judsz statement.","err")
+ }
+ log("Finished: "+n+" statement(s) checked in GD M preview; no live game code executed.","ok")
+}
 function snap(){return{schema:1,app:"gdm-loader",createdAt:new Date().toISOString(),profile:state.profile,installed:state.installed,installedVersions:state.installedVersions,settings:state.settings,script:state.script,savedScripts:state.savedScripts}}
 function download(name,data,type="application/json"){const body=typeof data==="string"?data:JSON.stringify(data,null,2),u=URL.createObjectURL(new Blob([body],{type})),a=document.createElement("a");a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
 function backup(){const b={...snap(),id:crypto.randomUUID?crypto.randomUUID():String(Date.now())};state.backups.unshift(b);state.backups=state.backups.slice(0,20);persist();drawBackups();toast("GDM Loader metadata recovery point created.")}
