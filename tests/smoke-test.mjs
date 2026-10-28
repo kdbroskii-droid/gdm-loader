@@ -9,7 +9,7 @@ for (const f of [
   "android-app/app/src/main/assets/www/index.html", "android-app/app/src/main/assets/www/app.js",
   "manifest.webmanifest", "sw.js", "assets/icon.svg",
   "geode-mod/CMakeLists.txt", "geode-mod/mod.json",
-  "geode-mod/src/main.cpp", "geode-mod/README.md"
+  "geode-mod/src/main.cpp", "geode-mod/README.md", "cloud-config.js", "backend/supabase-schema.sql"
 ]) assert.ok(existsSync(f), "Missing " + f);
 
 const html = readFileSync("index.html", "utf8");
@@ -25,7 +25,7 @@ const androidJs = readFileSync("android-app/app/src/main/assets/www/app.js", "ut
 
 assert.match(html, /id="page-judsz"/);
 assert.match(html, /id="page-saves"/);
-assert.match(js, /function run\(\)/);
+assert.match(js, /function run\(\)/);\nassert.match(js, /function lint\(/);\nassert.match(js, /cloudProfileSync/);\nassert.match(js, /15\*60\*1000/);\nassert.match(html, /id="cloud-auth-form"/);\nassert.match(html, /id="script-file"/);\nassert.match(readFileSync("backend/supabase-schema.sql","utf8"), /enable row level security/i);
 assert.ok(cat.mods.length >= 3);
 assert.ok(cat.mods.every(m => typeof m.id === "string" && Array.isArray(m.dependencies)));
 assert.equal(manifest.name, "GDM Loader");
