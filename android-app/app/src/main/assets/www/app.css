@@ -5,3 +5,10 @@
 @media(max-width:520px){main{padding:0 11px}.hero{padding:19px;min-height:250px}.hero h2{font-size:31px}.hero-glyph{display:none}.stats{gap:8px}.stats article{padding:12px}.stats article strong{font-size:22px}.modgrid{grid-template-columns:1fr}.pagehead{align-items:flex-start;gap:8px}.pagehead h2{font-size:16px}.pagehead>.btn{font-size:9px;padding:9px}.toolbar{flex-direction:column}.setting{align-items:flex-start;flex-direction:column;padding:14px}.setting input:not([type=checkbox]){width:100%}.backupitem{align-items:flex-start;flex-direction:column}.sectionhead h2{font-size:16px}.hero .btn{margin-top:4px}}
 
 .diagnostics{padding:10px 14px;background:#10141e;color:#9da9be;font:10px/1.7 'DM Mono',monospace;border-top:1px solid var(--border);white-space:pre-wrap}.diagnostics .error{color:#ff929c}.diagnostics .success{color:#75e9b2}.panelbar select{width:auto;max-width:180px;padding:5px;font:10px 'DM Mono',monospace}.panelbar>div{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}.inlinecheck{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:10px;color:#b7c0d1}.inlinecheck input{width:auto}.panel form{padding:0 16px 14px}.panel form input{margin-bottom:3px}.panel form .toolbar{margin:10px 0 0}.panel form .toolbar .btn{margin-top:0}.panel form label{margin-top:10px}.panel .notice{margin:10px 16px}.panel>.toolbar{padding:0 16px}.cloudhint{padding:0 16px}
+
+/* Android user-selected workspace browser */
+.workspace-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.workspace-files{display:grid;gap:6px;max-height:280px;overflow:auto;margin-top:12px}
+.workspace-file{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;border:1px solid var(--line,#2b3244);border-radius:10px;background:rgba(255,255,255,.025);font-size:.9rem}
+.workspace-file span{overflow-wrap:anywhere}
+.workspace-file button{flex-shrink:0}
