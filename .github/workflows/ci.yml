@@ -13,6 +13,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - run: node --check app.js
       - run: npm test
       - name: Validate project JSON
         run: |
