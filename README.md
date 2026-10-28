@@ -18,7 +18,7 @@ gradle -p android-app assembleDebug
 
 The debug APK is produced at `android-app/app/build/outputs/apk/debug/app-debug.apk`. The build and package check still need testing on a physical device.
 
-On every push, GitHub Actions also runs the Android build and uploads an artifact named `gd-m-android-debug-apk`. Open the repository's [Actions page](https://github.com/kdbroskii-droid/gdm-loader/actions), select the latest `Validate GD M Android project` run, and download that artifact if the Android build job succeeds.
+On every push, GitHub Actions also runs the Android build and uploads an artifact named `gdm-loader-android-debug-apk`. Open the repository's [Actions page](https://github.com/kdbroskii-droid/gdm-loader/actions), select the latest `Validate GD M Android project` run, and download that artifact if the Android build job succeeds.
 
 ## Native Geode mod build
 
