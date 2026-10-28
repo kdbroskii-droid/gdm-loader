@@ -32,4 +32,5 @@ android {
 
 dependencies {
     implementation("androidx.webkit:webkit:1.12.1")
+    implementation("androidx.documentfile:documentfile:1.0.1")
 }
