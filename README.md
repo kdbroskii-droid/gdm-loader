@@ -1,27 +1,31 @@
-# GDM Loader
+# GDM Loader — Android
 
-Cross-platform Geometry Dash mod-manager companion and Judsz editor prototype. The responsive installable PWA runs on Android, Windows, and Linux browsers.
+Android-only companion app prototype for a Geometry Dash mod catalog and Judsz script editor.
 
-## MVP features
-- Geode-inspired mod library with local install state and an online JSON catalog.
-- Judsz editor with a restricted demo interpreter for `show_message`, `jump`, `rocketup`, and `set_player_speed`.
-- Local profiles, optional local PIN field, and a Geometry Dash username note.
+## Android target
+The current implementation is a responsive installable Progressive Web App (PWA), usable in an Android browser and installable from a HTTPS host. It is not yet a native APK/AAB. Windows/Linux desktop builds are out of scope.
+
+## Included
+- Online JSON catalog with local install-state labels ("Already installed").
+- Judsz editor and restricted demo interpreter for `show_message`, `jump`, `rocketup`, and `set_player_speed`.
+- Local profile and Geometry Dash username note.
 - Exportable/importable GDM Loader metadata recovery points.
-- Safe mode, dependency prompts, offline app shell, and smoke-test CI.
+- Safe mode toggle, dependency prompts, offline shell and smoke-test CI.
 
-## Honest limitations
-This is not yet a native game-mod injector. Its independent UI cannot patch Geometry Dash or execute in-game hooks by itself. A version-specific native integration is still required. A browser/PWA cannot inspect arbitrary installed programs or access Geometry Dash's private Android save directory. The current recovery feature backs up GDM Loader metadata only, not Geometry Dash save files. The install path field is a note and does not scan or modify files.
+## Important limitations
+- This is not a native game-mod loader yet. The independent UI does not inject code into Geometry Dash; in-game hooks require a compatible, version-specific native integration.
+- The catalog entries are illustrative metadata only. They do not modify the game.
+- Browser/PWA storage cannot scan arbitrary installed programs or freely access Geometry Dash's private Android save directory. Recovery points currently contain GDM Loader metadata, not the game's save files.
+- The local profile is not a remote Judsz account. There is no account backend or cloud sync.
+- Do not enter your Geometry Dash password in this app. Sign in or register inside the game itself; this app has no official RobTop authentication integration.
+- Catalog downloads are data only; downloaded code is never automatically executed.
 
-The app does not request or store Geometry Dash passwords. Log in or register inside Geometry Dash itself. The local profile is not an online Judsz account; no account server or cloud sync is configured.
+## Run on Android
+1. Host this repository on a static HTTPS host.
+2. Open its hosted page in Chrome or another supported Android browser.
+3. Use the browser menu's **Install app** or **Add to Home screen** action.
 
-## Run
-Open `index.html`, or serve the folder over HTTP:
-
-```sh
-python -m http.server 8080
-```
-
-Open `http://localhost:8080`. Service workers require HTTPS or localhost. Deploy to a HTTPS static host to install the PWA on Android.
+For local development on a computer, run `python -m http.server 8080` and open the page on that computer. This is only a development server; use HTTPS for normal Android PWA installation.
 
 ## Judsz example
 ```judsz
@@ -31,14 +35,13 @@ mod "Starter Mod":
         jump()
         rocketup()
 ```
-
-The demo interpreter simulates these commands in the console; it does not control the game.
+These actions are simulated by the editor. They do not control Geometry Dash.
 
 ## Roadmap
-1. Validate the PWA and editor prototype.
-2. Implement native Windows/Linux detection and real save-file backup.
-3. Design a supported, version-specific native mod bridge.
-4. Add signed packages, dependency resolution, rollback, and release builds.
-5. Evaluate Android companion integration and its platform restrictions.
+1. Publish and test the Android PWA on real devices.
+2. If a native APK is needed, package a mobile UI with an Android project and validate Android SDK/build requirements.
+3. Investigate permitted, version-specific game integration and actual save backup restrictions.
+4. Add real Judsz account registration only with a secure backend, email/account recovery, and clear privacy controls.
+5. Add signed package manifests and release update verification.
 
-Catalog entries are data only. Downloaded code is never automatically executed.
+GDM Loader is an independent community project and is not affiliated with RobTop Games or Geode.
