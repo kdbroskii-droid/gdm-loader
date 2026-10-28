@@ -1,4 +1,4 @@
-name: Validate GDM Loader
+name: Validate GDM Loader Android PWA
 on:
   push:
   pull_request:
