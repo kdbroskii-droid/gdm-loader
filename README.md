@@ -45,7 +45,7 @@ Official documentation: [Geode SDK docs](https://docs.geode-sdk.org) and [Geode 
 - Does **not** access or overwrite Geometry Dash save files.
 - Does **not** provide an online Judsz account backend.
 
-The companion PWA is not yet connected to the native module. PWA recovery currently includes GDM Loader metadata only, not Geometry Dash's private save data. Its local profile is not an online account.
+The companion PWA is not yet connected to the native module. PWA recovery includes GDM Loader metadata only, not Geometry Dash's private save data. Online GDM Loader account support uses a user-configured Supabase project; it is separate from Geometry Dash authentication.
 
 ## Android companion PWA
 
@@ -80,3 +80,22 @@ npm test
 This validates file presence and metadata, not the native Android binary. A real native build still needs the Geode CLI, Android NDK, matching SDK binaries, and testing on a compatible Geometry Dash/Geode installation.
 
 GDM Loader is an independent community project and is not affiliated with RobTop Games or the Geode team.
+
+## Judsz editor improvements
+
+The editor now has starter examples, local named scripts, import/export of `.judsz` files, basic formatting, syntax diagnostics, and Ctrl+Enter to run the restricted simulator. This is not a complete Python/Luau compiler and does not execute code inside Geometry Dash.
+
+## Online GDM Loader accounts
+
+1. Create a Supabase project and open its SQL editor.
+2. Run `backend/supabase-schema.sql`.
+3. In GDM Loader → Profile & account, enter the project URL and the **public anon/publishable key**.
+4. Register or log in with an email and password, then use **Sync workspace**.
+
+The app does not store account passwords. Do not enter your Geometry Dash password here and never use a Supabase service-role key in a client app. Email confirmation may need to be completed according to the project's Supabase Auth settings. The Supabase schema enables row-level security so each signed-in user can access only their own profile row.
+
+## Catalog update checks and limitations
+
+GDM Loader checks `catalog.json` on startup, when returning to the app, on manual refresh, and every 15 minutes while visible. It compares catalog versions with locally recorded versions and reports available updates. **At this stage, “Update record” updates only the local version record.** The current catalog entries are examples with no real downloadable Geode package artifacts, and the Android UI does not install or replace game mod binaries. Actual automatic mod installation/update requires verified package URLs and hashes plus a native Geode-compatible installer; do not treat this metadata prototype as a real mod updater.
+
+Geometry Dash account registration/login/logout stays inside Geometry Dash. GDM Loader cannot safely or officially log the player out of the game, change its credentials, or authenticate through RobTop because no official sign-in API is integrated. The online account here is a separate GDM Loader account.
