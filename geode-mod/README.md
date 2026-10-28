@@ -1,6 +1,6 @@
-# GDM Loader — native Geode module (Android)
+# GD M — native Geode module (Android)
 
-This folder is the native in-game integration track for GDM Loader. It uses Geode's supported mod project structure and adds a GDM Loader button to Geometry Dash's main menu. The button opens a status popup so the first native integration can be tested without pretending the rest is already complete.
+This folder is the native in-game integration track for GD M. It uses Geode's supported mod project structure and adds a GD M button to Geometry Dash's main menu. The button opens a status popup so the first native integration can be tested without pretending the rest is already complete.
 
 ## Build requirements
 
