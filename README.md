@@ -3,9 +3,22 @@
 GDM Loader is an Android-first Geometry Dash modding project with two parts:
 
 - **Native Geode module** in `geode-mod/`: a real Geode mod project that adds a GDM Loader button to Geometry Dash's main menu. This is the first native integration milestone.
-- **Companion PWA** at the repository root: responsive mod catalog prototype, local profile UI, metadata recovery, and restricted Judsz demo editor.
+- **Native Android app** in `android-app/`: checks whether Geometry Dash is installed, reports its version, and can launch it. It bundles the companion UI so it can call Android package APIs.
+- **Companion PWA** at the repository root: responsive mod catalog prototype, local profile UI, metadata recovery, and restricted Judsz demo editor. The browser-only PWA cannot inspect installed Android packages.
 
-## Native Android build
+## Native Android app build
+
+The native companion app checks the `com.robtopx.geometryjump` package through Android `PackageManager`, shows whether the game is installed and its version, and offers an Open Geometry Dash button when detected. Android 11+ package visibility is limited to that package in the manifest; it does not request broad app-list access.
+
+With Android SDK Platform 35, JDK 17, and Gradle 8.9 installed, run from the repository root:
+
+```sh
+gradle -p android-app assembleDebug
+```
+
+The debug APK is produced at `android-app/app/build/outputs/apk/debug/app-debug.apk`. The build and package check still need testing on a physical device.
+
+## Native Geode mod build
 
 The native module targets Geometry Dash Android 2.2081 and Geode v5.11.2 in `geode-mod/mod.json`. Verify the installed Geometry Dash version and the current Geode release before building; these compatibility values must be tested on the actual device.
 
