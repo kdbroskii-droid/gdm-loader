@@ -21,6 +21,20 @@ jobs:
           node -e "JSON.parse(require('fs').readFileSync('manifest.webmanifest','utf8'))"
           node -e "JSON.parse(require('fs').readFileSync('geode-mod/mod.json','utf8'))"
 
+  native-planner-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile native autoplay planner tests
+        run: |
+          g++ -std=c++17 -Wall -Wextra -Werror \
+            -Inative-loader/autoplay \
+            native-loader/autoplay/autoplay_planner.cpp \
+            native-loader/tests/autoplay_planner_test.cpp \
+            -o autoplay-planner-test
+      - name: Run native autoplay planner tests
+        run: ./autoplay-planner-test
+
   android-debug-build:
     runs-on: ubuntu-latest
     steps:
