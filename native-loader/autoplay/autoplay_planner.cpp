@@ -13,7 +13,7 @@ bool valid_box(const Hitbox& box) {
            box.width > 0.0f && box.height > 0.0f;
 }
 
-bool overlaps(const Hitbox& a, const Hitbox& b) {
+Hitbox predict_obstacle_box(const Obstacle& obstacle, float t) {\n    return {obstacle.hitbox.x + obstacle.velocity_x * t,\n            obstacle.hitbox.y + obstacle.velocity_y * t,\n            obstacle.hitbox.width, obstacle.hitbox.height};\n}\n\nbool overlaps(const Hitbox& a, const Hitbox& b) {
     return a.x < b.x + b.width && a.x + a.width > b.x &&
            a.y < b.y + b.height && a.y + a.height > b.y;
 }
@@ -31,7 +31,7 @@ bool path_is_clear(const PlayerState& p, const Obstacle* obstacles,
     for (float t = 0.0f; t <= horizon + step * 0.5f; t += step) {
         const Hitbox player_box = predict_box(p, t, jump);
         for (std::size_t i = 0; i < count; ++i) {
-            if (overlaps(player_box, obstacles[i].hitbox)) {
+            if (overlaps(player_box, predict_obstacle_box(obstacles[i], t))) {
                 if (first_id) *first_id = obstacles[i].id;
                 if (first_time) *first_time = t;
                 return false;
@@ -54,7 +54,7 @@ Decision choose_action(const PlayerState& player, const Obstacle* obstacles,
         return invalid;
     }
     for (std::size_t i = 0; i < count; ++i) {
-        if (!valid_box(obstacles[i].hitbox)) return invalid;
+        if (!valid_box(obstacles[i].hitbox) ||\n            !std::isfinite(obstacles[i].velocity_x) ||\n            !std::isfinite(obstacles[i].velocity_y)) return invalid;
     }
     if (count == 0) return {Action::None, 0, horizon, true};
 
