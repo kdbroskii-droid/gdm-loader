@@ -1,4 +1,6 @@
 (()=>{"use strict";const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],KEY="judsz-scripts-v4",GAMEKEY="judsz-game-v1";let saved=JSON.parse(localStorage.getItem(KEY)||"{}");function show(p){$$(".screen").forEach(s=>s.classList.toggle("active",s.id===p));if(p==="game")draw()}$$("[data-page]").forEach(b=>b.onclick=()=>show(b.dataset.page));$("#open-editor").onclick=()=>show("editor");$("#open-mods").onclick=()=>show("mods");$("#open-judsz").onclick=()=>show("game");
+$("#inspect-apk").onclick=()=>{const b=window.GDMAndroidBridge;if(!b||typeof b.chooseGameApk!=="function"){say("APK inspection requires the installed Android app.",false);return}$("#apk-status").textContent="Choose a local APK to inspect…";b.chooseGameApk()};
+window.gameApkResult=(success,message)=>{const el=$("#apk-status");if(el)el.textContent=message; say(message,success)};
 $("#find-game").onclick=async()=>{
   const status=$("#game-status");
   const bridge=window.GDMAndroidBridge;
