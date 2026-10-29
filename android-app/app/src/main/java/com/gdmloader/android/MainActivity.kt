@@ -144,8 +144,8 @@ class MainActivity : Activity() {
         val out = JSONArray()
         fun walk(dir: DocumentFile, prefix: String, depth: Int) {
             if (depth > 5 || out.length() >= 500) return
-            dir.listFiles().sortedBy { it.name?.lowercase() ?: "" }.forEach { item ->
-                val name = item.name ?: return@forEach
+            dir.listFiles().sortedBy { it.getName()?.lowercase() ?: "" }.forEach { item ->
+                val name = item.getName() ?: return@forEach
                 val rel = if (prefix.isEmpty()) name else "$prefix/$name"
                 out.put(JSONObject().put("path", rel).put("directory", item.isDirectory).put("size", item.length()).put("modified", item.lastModified()))
                 if (item.isDirectory) walk(item, rel, depth + 1)
