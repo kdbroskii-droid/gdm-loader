@@ -46,3 +46,14 @@ Do not mark the project complete until all of these pass:
 7. A real-device test confirms no startup crash and records the game/app versions used.
 
 The standalone path is the product. Geode code must not be presented as if it satisfies these criteria.
+
+## User-supplied APK inspection (2026-10-29)
+
+The user supplied a local file named `Geometry Dash_2.2081.apk` for compatibility investigation. Archive inspection found these native libraries:
+
+- `lib/arm64-v8a/libcocos2dcpp.so`
+- `lib/arm64-v8a/libfmod.so`
+- `lib/armeabi-v7a/libcocos2dcpp.so`
+- `lib/armeabi-v7a/libfmod.so`
+
+This establishes that the APK archive contains ARM64 and ARMv7 native-library variants, including Cocos2d-x and FMOD. The filename alone is not authoritative proof of the package version; the binary Android manifest and package/version/signature details still need to be decoded and verified with Android tooling. No game files are committed to this repository. No patching or in-game integration has been performed from this inspection.
