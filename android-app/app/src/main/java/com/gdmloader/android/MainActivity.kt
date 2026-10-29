@@ -4,6 +4,9 @@ import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.PackageInfo
+import android.content.pm.PackageManager.NameNotFoundException
+import java.util.zip.ZipFile
 import android.net.Uri
 import android.os.Environment
 import android.provider.Settings
@@ -23,12 +26,14 @@ private const val GEOMETRY_DASH_PACKAGE = "com.robtopx.geometryjump"
 private const val PREFS = "gdm_native"
 private const val TREE_URI = "workspace_tree_uri"
 private const val PICK_TREE = 4107
+private const val PICK_GAME_APK = 4108
 
 class MainActivity : Activity() {
     private lateinit var webView: WebView
     private lateinit var assetLoader: WebViewAssetLoader
     private val prefs by lazy { getSharedPreferences(PREFS, MODE_PRIVATE) }
     private var pickerPending = false
+    private var apkPickerPending = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,9 +81,74 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun chooseGameApk() {
+        if (apkPickerPending || isFinishing) return
+        apkPickerPending = true
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "application/vnd.android.package-archive"
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        try { startActivityForResult(intent, PICK_GAME_APK) }
+        catch (_: ActivityNotFoundException) {
+            apkPickerPending = false
+            notifyWeb("gameApkResult", false, "No Android file picker is available.")
+        }
+    }
+
+    private fun inspectSelectedGameApk(uri: Uri) {
+        val temp = File(cacheDir, "gdm-apk-inspect.apk")
+        try {
+            contentResolver.openInputStream(uri)?.use { input ->
+                temp.outputStream().use { output -> input.copyTo(output) }
+            } ?: throw IllegalStateException("Could not read the selected APK.")
+            if (!temp.isFile || temp.length() < 4 || temp.length() > 1_500_000_000L) {
+                throw IllegalArgumentException("The selected file is empty or exceeds the 1.5 GB safety limit.")
+            }
+            val packageInfo = if (android.os.Build.VERSION.SDK_INT >= 33) {
+                packageManager.getPackageArchiveInfo(temp.absolutePath, PackageManager.PackageInfoFlags.of(0))
+            } else {
+                @Suppress("DEPRECATION")
+                packageManager.getPackageArchiveInfo(temp.absolutePath, 0)
+            } ?: throw IllegalArgumentException("Android could not read this APK's package manifest.")
+            val pkg = packageInfo.packageName ?: ""
+            val version = packageInfo.versionName ?: "unknown"
+            val abis = linkedSetOf<String>()
+            ZipFile(temp).use { zip ->
+                val entries = zip.entries()
+                while (entries.hasMoreElements()) {
+                    val name = entries.nextElement().name
+                    if (name.startsWith("lib/")) {
+                        val abi = name.removePrefix("lib/").substringBefore('/')
+                        if (abi in setOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")) abis.add(abi)
+                    }
+                }
+            }
+            val supportedPackage = pkg == GEOMETRY_DASH_PACKAGE
+            val message = buildString {
+                append("APK inspected successfully.\\n")
+                append("Package: ").append(pkg).append("\\n")
+                append("Version: ").append(version).append("\\n")
+                append("Native ABIs: ").append(if (abis.isEmpty()) "none detected" else abis.joinToString()).append("\\n")
+                append(if (supportedPackage) "Geometry Dash package identified. This is inspection only; no patch was made." else "This is not the expected Geometry Dash package. No patch was made.")
+            }
+            notifyWeb("gameApkResult", supportedPackage, message)
+        } catch (e: Exception) {
+            notifyWeb("gameApkResult", false, "APK inspection failed: " + (e.message ?: "unknown error"))
+        } finally {
+            temp.delete()
+        }
+    }
+
     @Deprecated("Activity result API retained for compatibility with minSdk 23")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == PICK_GAME_APK) {
+            apkPickerPending = false
+            if (resultCode == RESULT_OK && data?.data != null) inspectSelectedGameApk(data.data!!)
+            else notifyWeb("gameApkResult", false, "APK selection cancelled.")
+            return
+        }
         if (requestCode != PICK_TREE) return
         pickerPending = false
         if (resultCode != RESULT_OK || data?.data == null) {
@@ -243,6 +313,7 @@ class MainActivity : Activity() {
     private inner class GameDetectorBridge {
         @JavascriptInterface fun isGeometryDashInstalled(): Boolean = this@MainActivity.isGeometryDashInstalled()
         @JavascriptInterface fun getGeometryDashVersion(): String = geometryDashVersion()
+        @JavascriptInterface fun chooseGameApk() { runOnUiThread { this@MainActivity.chooseGameApk() } }
         @JavascriptInterface fun getNativeRuntimeInfo(): String = NativeJudsz.statusJson()
         @JavascriptInterface fun dispatchNativeCommand(command: String, jsonArgs: String): Int = try { NativeJudsz.nativeDispatch(command, jsonArgs) } catch (_: Exception) { 5 }
         @JavascriptInterface fun launchGeometryDash(): Boolean {
