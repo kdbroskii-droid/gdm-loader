@@ -4,7 +4,7 @@ import unittest
 import zipfile
 from pathlib import Path
 
-SCRIPT = Path(__file__).resolve().parents[1] / "tools" / "inspect_gd_apk.py"
+SCRIPT = Path(__file__).resolve().parents[2] / "tools" / "inspect_gd_apk.py"
 SPEC = importlib.util.spec_from_file_location("inspect_gd_apk", SCRIPT)
 MODULE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MODULE)
