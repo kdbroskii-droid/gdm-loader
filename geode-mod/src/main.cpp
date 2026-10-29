@@ -59,7 +59,7 @@ class $modify(GDMAutoPlayLayer, PlayLayer) {
     void postUpdate(float dt) {
         PlayLayer::postUpdate(dt);
 
-        auto* fields = m_fields.operator->();
+        auto* fields = m_fields;
         if (!fields->enabled) return;
 
         auto* player = this->m_player1;
