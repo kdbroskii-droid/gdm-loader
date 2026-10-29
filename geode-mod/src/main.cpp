@@ -83,7 +83,7 @@ class $modify(GDMAutoPlayLayer, PlayLayer) {
         // collision rect is the sole perception source.
         float nearestDistance = 100000.f;
         GameObject* nearest = nullptr;
-        for (auto* object : m_objects) {
+        for (auto* object : CCArrayExt<GameObject*>(m_objects)) {
             if (!object || object == player) continue;
             const auto box = object->getObjectRect(1.f, true);
             if (box.size.width <= 0.f || box.size.height <= 0.f) continue;
