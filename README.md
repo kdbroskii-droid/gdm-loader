@@ -1,101 +1,50 @@
-# GD M — Android + Geode
+# GD M / Judsz — standalone Geometry Dash mod loader
 
-GD M is an Android-first Geometry Dash modding project with two parts:
+**Product target:** an Android app with its own mod menu and native runtime that can load mods into a compatible, user-patched Geometry Dash build. GD M is not intended to require the Geode launcher or a `.geode` plugin as its primary runtime.
 
-- **Native Geode module** in `geode-mod/`: a real Geode mod project that adds a GD M button to Geometry Dash's main menu. This is the first native integration milestone.
-- **Native Android app** in `android-app/`: checks whether Geometry Dash is installed, reports its version, and can launch it. It bundles the companion UI so it can call Android package APIs.
-- **Companion PWA** at the repository root: responsive mod catalog prototype, local profile UI, metadata recovery, and restricted Judsz demo editor. The browser-only PWA cannot inspect installed Android packages.
+## Important current status
 
-## Native Android app build
+- The Android companion APK builds successfully in GitHub Actions.
+- The current app can detect and launch the installed Geometry Dash package.
+- The native JNI library is still a scaffold. It does **not** inject into, patch, or run inside Geometry Dash.
+- The existing Geode module is an optional prototype only; its successful build does **not** meet the standalone-loader requirement.
+- The mod browser/editor UI and built-in test game are not yet connected to the real Geometry Dash process.
+- No in-game mod-menu command or autoplay behavior has been verified on a device.
 
-The native companion app checks the `com.robtopx.geometryjump` package through Android `PackageManager`, shows whether the game is installed and its version, and offers an Open Geometry Dash button when detected. Android 11+ package visibility is limited to that package in the manifest; it does not request broad app-list access.
+Do not interpret an Android APK build or a `.geode` build as proof of live game integration.
 
-With Android SDK Platform 35, JDK 17, and Gradle 8.9 installed, run from the repository root:
+## Standalone design
 
-```sh
-gradle -p android-app assembleDebug
-```
+See [`docs/STANDALONE-LOADER-ARCHITECTURE.md`](docs/STANDALONE-LOADER-ARCHITECTURE.md) for the target architecture and acceptance criteria.
 
-The debug APK is produced at `android-app/app/build/outputs/apk/debug/app-debug.apk`. The build and package check still need testing on a physical device.
+A normal Android app cannot load native code into another installed app's private process simply by launching it. The intended route is a separate patched APK made from a user-selected local Geometry Dash APK. The patcher must preserve the source APK, verify supported package/version/ABI combinations, add the GD M native bridge, rebuild and sign the output, and reject unsupported inputs safely.
 
-On every push, GitHub Actions also runs the Android build and uploads an artifact named `gdm-loader-android-debug-apk`. Open the repository's [Actions page](https://github.com/kdbroskii-droid/gdm-loader/actions), select the latest `Validate GD M Android project` run, and download that artifact if the Android build job succeeds.
+GD M must not download or redistribute proprietary Geometry Dash APKs/assets. Re-signing a modified APK may require uninstalling the original package first and can affect saves, purchases, updates, and online compatibility; back up important data before testing.
 
-## Native Geode mod build
+## Existing Android companion build
 
-The native module targets Geometry Dash Android 2.2081 and Geode v5.11.2 in `geode-mod/mod.json`. Verify the installed Geometry Dash version and the current Geode release before building; these compatibility values must be tested on the actual device.
-
-Install the Geode CLI and Android NDK, then from `geode-mod/` run:
-
-```sh
-geode sdk install-binaries -p android64
-geode build -p android64
-```
-
-For a 32-bit game build, use `android32`. The built `.geode` package is normally placed in `build-android64/` or `build-android32/`. Install it using Geode's supported Android workflow. The documented Android mods directory is `Android/media/com.geode.launcher/game/geode/mods/`.
-
-Official documentation: [Geode SDK docs](https://docs.geode-sdk.org) and [Geode Android mod build guide](https://github.com/poweredbypie/geode.docs/blob/main/getting-started/create-mod.md).
-
-## Current native capabilities
-
-- Uses Geode's native mod lifecycle.
-- Adds a main-menu button and opens a status popup.
-- Leaves actual native mod installation, dependency resolution, and updates to Geode's own mod manager.
-- Does **not** yet install/manage other mods from a custom GD M browser.
-- Does **not** yet execute Judsz scripts in-game or map `jump()` / `rocketup()` to game events.
-- Does **not** access or overwrite Geometry Dash save files.
-- Does **not** provide an online Judsz account backend.
-
-The companion PWA is not yet connected to the native module. PWA recovery includes GD M metadata only, not Geometry Dash's private save data. Online GD M account support uses a user-configured Supabase project; it is separate from Geometry Dash authentication.
-
-## Android companion PWA
-
-Serve the repository root over HTTPS to install it from a supported Android browser. For local development:
+Requirements: Android SDK Platform 35, JDK 17, and Gradle 8.9.
 
 ```sh
-python -m http.server 8080
+gradle -p android-app :app:assembleDebug
 ```
 
-Then open `http://localhost:8080`. Service workers require HTTPS or localhost.
+Output: `android-app/app/build/outputs/apk/debug/app-debug.apk`.
 
-## Judsz example
+GitHub Actions builds the companion APK and uploads an artifact named `gdm-loader-android-debug-apk`.
 
-```judsz
-mod "Starter Mod":
-    on_level_start:
-        show_message("Judsz is running!")
-        jump()
-        rocketup()
-```
+## Native and game integration
 
-The current PWA demo interpreter simulates these commands; it does not control the game. The native Judsz bridge remains future work.
+The current native API reports `scaffold_only`. It must not report game bindings as verified until initialization inside the game process and real command dispatch have been tested. Mod-menu buttons must call the in-game runtime, not only JavaScript in the companion WebView.
+
+Autoplay is a later gameplay feature: it must consume live collision/object data from the currently loaded level, avoid screenshots/textures/colours/OCR, and be tested across game modes. A rough collision planner alone is not a finished autoplay system.
 
 ## Validation
-
-Run the repository's JavaScript smoke tests with Node.js:
 
 ```sh
 npm test
 ```
 
-This validates file presence and metadata, not the native Android binary. A real native build still needs the Geode CLI, Android NDK, matching SDK binaries, and testing on a compatible Geometry Dash/Geode installation.
+This runs repository smoke tests; it does not prove that the loader works inside Geometry Dash. Completion requires the acceptance tests in the architecture document, including a patched APK launching on a real device, a visible in-game GD M menu, and a test command producing a verified in-game change.
 
 GD M is an independent community project and is not affiliated with RobTop Games or the Geode team.
-
-## Judsz editor improvements
-
-The editor now has starter examples, local named scripts, import/export of `.judsz` files, basic formatting, syntax diagnostics, and Ctrl+Enter to run the restricted simulator. This is not a complete Python/Luau compiler and does not execute code inside Geometry Dash.
-
-## Online GD M accounts
-
-1. Create a Supabase project and open its SQL editor.
-2. Run `backend/supabase-schema.sql`.
-3. In GD M → Profile & account, enter the project URL and the **public anon/publishable key**.
-4. Register or log in with an email and password, then use **Sync workspace**.
-
-The app does not store account passwords. Do not enter your Geometry Dash password here and never use a Supabase service-role key in a client app. Email confirmation may need to be completed according to the project's Supabase Auth settings. The Supabase schema enables row-level security so each signed-in user can access only their own profile row.
-
-## Catalog update checks and limitations
-
-GD M checks `catalog.json` on startup, when returning to the app, on manual refresh, and every 15 minutes while visible. It compares catalog versions with locally recorded versions and reports available updates. **At this stage, “Update record” updates only the local version record.** The current catalog entries are examples with no real downloadable Geode package artifacts, and the Android UI does not install or replace game mod binaries. Actual automatic mod installation/update requires verified package URLs and hashes plus a native Geode-compatible installer; do not treat this metadata prototype as a real mod updater.
-
-Geometry Dash account registration/login/logout stays inside Geometry Dash. GD M cannot safely or officially log the player out of the game, change its credentials, or authenticate through RobTop because no official sign-in API is integrated. The online account here is a separate GD M account.
