@@ -8,7 +8,7 @@ using namespace judsz::autoplay;
 
 int main() {
     const PlayerState player{{0.0f, 0.0f, 10.0f, 10.0f},
-                             10.0f, 0.0f, 20.0f, -10.0f, true};
+                             10.0f, 0.0f, 20.0f, -30.0f, true};
 
     const Decision empty = choose_action(player, nullptr, 0, 1.0f, 0.05f);
     assert(empty.prediction_valid);
@@ -21,7 +21,7 @@ int main() {
     assert(jump.obstacle_id == 42);
 
     const PlayerState airborne{{0.0f, 0.0f, 10.0f, 10.0f},
-                               10.0f, 0.0f, 20.0f, -10.0f, false};
+                               10.0f, 0.0f, 20.0f, -30.0f, false};
     const Decision cannot_jump = choose_action(airborne, &obstacle, 1, 2.0f, 0.05f);
     assert(cannot_jump.prediction_valid);
     assert(cannot_jump.action == Action::NoSafeAction);
