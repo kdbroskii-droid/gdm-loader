@@ -186,7 +186,7 @@ class MainActivity : Activity() {
             } catch (_: ActivityNotFoundException) { false } catch (_: SecurityException) { false }
         }
         @JavascriptInterface fun hasWorkspaceAccess(): Boolean = savedTree() != null
-        @JavascriptInterface fun getWorkspaceName(): String = savedTree()?.name ?: ""
+        @JavascriptInterface fun getWorkspaceName(): String = savedTree()?.getName() ?: ""
         @JavascriptInterface fun chooseWorkspaceFolder() { runOnUiThread { this@MainActivity.chooseWorkspaceFolder() } }
         @JavascriptInterface fun listWorkspaceFiles(): String = listFiles()
         @JavascriptInterface fun readWorkspaceFile(path: String): String = readFile(path)
