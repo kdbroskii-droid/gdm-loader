@@ -14,6 +14,10 @@ jobs:
         with:
           node-version: 22
       - run: node --check app.js
+      - name: Check APK inspection helper syntax
+        run: python3 -m py_compile tools/inspect_gd_apk.py
+      - name: Check APK inspection helper CLI
+        run: python3 tools/inspect_gd_apk.py --help
       - run: npm test
       - name: Validate project JSON
         run: |
