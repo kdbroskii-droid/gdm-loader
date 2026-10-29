@@ -243,6 +243,8 @@ class MainActivity : Activity() {
     private inner class GameDetectorBridge {
         @JavascriptInterface fun isGeometryDashInstalled(): Boolean = this@MainActivity.isGeometryDashInstalled()
         @JavascriptInterface fun getGeometryDashVersion(): String = geometryDashVersion()
+        @JavascriptInterface fun getNativeRuntimeInfo(): String = NativeJudsz.statusJson()
+        @JavascriptInterface fun dispatchNativeCommand(command: String, jsonArgs: String): Int = try { NativeJudsz.nativeDispatch(command, jsonArgs) } catch (_: Exception) { 5 }
         @JavascriptInterface fun launchGeometryDash(): Boolean {
             if (!isGeometryDashInstalled()) return false
             return try {
