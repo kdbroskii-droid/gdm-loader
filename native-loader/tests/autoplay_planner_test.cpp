@@ -14,7 +14,7 @@ int main() {
     assert(empty.prediction_valid);
     assert(empty.action == Action::None);
 
-    const Obstacle obstacle{{20.0f, 0.0f, 10.0f, 10.0f}, 42, 0.0f, 0.0f};
+    const Obstacle obstacle{{15.0f, 0.0f, 10.0f, 10.0f}, 42, 0.0f, 0.0f};
     const Decision jump = choose_action(player, &obstacle, 1, 2.0f, 0.05f);
     assert(jump.prediction_valid);
     assert(jump.action == Action::Jump);
@@ -26,7 +26,7 @@ int main() {
     assert(cannot_jump.prediction_valid);
     assert(cannot_jump.action == Action::NoSafeAction);
 
-    const Obstacle invalid{{20.0f, 0.0f, -1.0f, 10.0f}, 7, 0.0f, 0.0f};
+    const Obstacle invalid{{15.0f, 0.0f, -1.0f, 10.0f}, 7, 0.0f, 0.0f};
     const Decision rejected = choose_action(player, &invalid, 1, 2.0f, 0.05f);
     assert(!rejected.prediction_valid);
     assert(rejected.action == Action::NoSafeAction);
