@@ -18,6 +18,8 @@ jobs:
         run: python3 -m py_compile tools/inspect_gd_apk.py
       - name: Check APK inspection helper CLI
         run: python3 tools/inspect_gd_apk.py --help
+      - name: Test APK inspection helper
+        run: python3 -m unittest discover -s tools/tests -v
       - run: npm test
       - name: Validate project JSON
         run: |
