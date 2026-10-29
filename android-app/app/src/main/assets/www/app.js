@@ -48,7 +48,7 @@ const defaults={speed:3.4,jump:10.5,gravity:.48,color:"#a5ff36",sky:"#222044",si
   if(m=s.match(/^(?:let|var|set)\s+([A-Za-z_]\w*)\s*=\s*(.+)$/)){vars[m[1]]=value(m[2],line);continue}
   if(m=s.match(/^(?:print|log)\((.*)\)$/)){ops.push({t:"log",v:String(value(m[1],line))});continue}
   if(m=s.match(/^window\(\s*(["'])(.*?)\1\s*,\s*(.+?)\s*,\s*(.+?)\s*\)$/)){ops.push({t:"window",v:m[2],w:value(m[3],line),h:value(m[4],line)});continue}
-  if(m=s.match(/^(label|button|click)\(\s*(["'])(.*?)\2\s*\)$/)){ops.push({t:m[1],v:m[3]});continue}
+  if(m=s.match(/^(label|button|click)\(\s*(.*?)\s*\)$/)){let v=value(m[2],line);ops.push({t:m[1],v:String(v)});continue}
   if(m=s.match(/^add\(\s*(.+?)\s*,\s*(.+?)\s*\)$/)){let a=value(m[1],line),b=value(m[2],line);if(typeof a!=="number"||typeof b!=="number")throw Error("Line "+line+": add() needs numbers.");ops.push({t:"add",a,b});continue}
   if(m=s.match(/^wait\(\s*(.+?)\s*\)$/)){let n=value(m[1],line);if(typeof n!=="number"||n<0||n>300)throw Error("Line "+line+": wait must be 0–300 seconds.");ops.push({t:"wait",v:n});continue}
   if(/^jump\(\s*\)$/.test(s)){ops.push({t:"jump"});continue}
