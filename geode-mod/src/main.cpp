@@ -59,19 +59,18 @@ class $modify(GDMAutoPlayLayer, PlayLayer) {
     void postUpdate(float dt) {
         PlayLayer::postUpdate(dt);
 
-        auto* fields = m_fields;
-        if (!fields->enabled) return;
+        if (!m_fields->enabled) return;
 
         auto* player = this->m_player1;
         if (!player || this->m_isPaused || this->m_hasCompletedLevel) return;
 
-        fields->triggerCooldown = std::max(0.f, fields->triggerCooldown - dt);
-        fields->jumpReleaseTimer = std::max(0.f, fields->jumpReleaseTimer - dt);
+        m_fields->triggerCooldown = std::max(0.f, m_fields->triggerCooldown - dt);
+        m_fields->jumpReleaseTimer = std::max(0.f, m_fields->jumpReleaseTimer - dt);
 
         // Release the input after one short pulse; never leave jump held.
-        if (fields->jumpHeld && fields->jumpReleaseTimer <= 0.f) {
+        if (m_fields->jumpHeld && m_fields->jumpReleaseTimer <= 0.f) {
             player->releaseButton(PlayerButton::Jump);
-            fields->jumpHeld = false;
+            m_fields->jumpHeld = false;
         }
 
         // Only read native collision rectangles. No framebuffer, screenshot,
@@ -106,7 +105,7 @@ class $modify(GDMAutoPlayLayer, PlayLayer) {
             }
         }
 
-        if (!nearest || fields->triggerCooldown > 0.f) return;
+        if (!nearest || m_fields->triggerCooldown > 0.f) return;
 
         // Only perform a normal jump when grounded. The distance threshold
         // scales with the player's current horizontal speed.
@@ -117,10 +116,10 @@ class $modify(GDMAutoPlayLayer, PlayLayer) {
             const float timeToContact = nearestDistance / speed;
             if (timeToContact <= 0.28f) {
                 if (player->pushButton(PlayerButton::Jump)) {
-                    fields->jumpHeld = true;
-                    fields->jumpReleaseTimer = 0.045f;
-                    fields->triggerCooldown = 0.16f;
-                    fields->lastObstacleID = nearest->m_objectID;
+                    m_fields->jumpHeld = true;
+                    m_fields->jumpReleaseTimer = 0.045f;
+                    m_fields->triggerCooldown = 0.16f;
+                    m_fields->lastObstacleID = nearest->m_objectID;
                 }
             }
         }
