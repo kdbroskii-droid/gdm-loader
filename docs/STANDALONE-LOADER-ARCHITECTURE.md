@@ -57,3 +57,29 @@ The user supplied a local file named `Geometry Dash_2.2081.apk` for compatibilit
 - `lib/armeabi-v7a/libfmod.so`
 
 This establishes that the APK archive contains ARM64 and ARMv7 native-library variants, including Cocos2d-x and FMOD. The filename alone is not authoritative proof of the package version; the binary Android manifest and package/version/signature details still need to be decoded and verified with Android tooling. No game files are committed to this repository. No patching or in-game integration has been performed from this inspection.
+
+
+### Native symbol reconnaissance for the supplied APK
+
+Read-only ELF inspection of `lib/arm64-v8a/libcocos2dcpp.so` found exported/defined C++ symbol names that are relevant candidates for later reverse-engineering, including:
+
+- `PlayerObject::buttonDown(PlayerButton)`
+- `PlayerObject::updateCollide(PlayerCollisionDirection, GameObject*)`
+- `PlayerObject::updateCollideBottom(float, GameObject*)`
+- `PlayerObject::getCurrentXVelocity()`
+- `GJBaseGameLayer::playerCircleCollision(PlayerObject*, GameObject*)`
+- `GJBaseGameLayer::getGroundHeight(PlayerObject*, int)`
+- `GameObject::getBoundingRect()`
+- `GameObject::getObjectRect()`
+- `PlayLayer::destroyPlayer(PlayerObject*, GameObject*)`
+- `PlayLayer::resetLevel()`
+
+These names are promising for collision-aware autoplay research, but are **not yet verified runtime bindings**. Symbol presence alone does not establish correct object layouts, calling conventions, lifecycle safety, or a working hook. Do not hard-code the addresses from this one binary as portable offsets.
+
+A read-only helper was added at `tools/inspect_gd_apk.py`. It checks archive integrity, reports the requested ABI's native libraries and hashes, and lists matching native symbol names when `readelf` is installed. On systems with Android `aapt`/ `aapt2`, it also reports package metadata. Example:
+
+```sh
+python3 tools/inspect_gd_apk.py "/path/to/Geometry Dash_2.2081.apk" --abi arm64-v8a --json
+```
+
+The helper never patches, signs, installs, or modifies the input APK. The binary Android manifest still needs authoritative decoding on an Android SDK-equipped environment to verify package ID and version; the filename alone is not proof of version.
