@@ -25,8 +25,8 @@ const androidJs = readFileSync("android-app/app/src/main/assets/www/app.js", "ut
 const cloudSql = readFileSync("backend/supabase-schema.sql", "utf8");
 const bundledCloudConfig = readFileSync("android-app/app/src/main/assets/www/cloud-config.js", "utf8");
 
-assert.match(html, /id="page-judsz"/);
-assert.match(html, /id="page-saves"/);
+assert.match(html, /id="game"/);
+assert.match(html, /id="dictionary"/);
 assert.match(js, /function run\(\)/);
 assert.match(js, /function lint\(/);
 assert.match(js, /cloudProfileSync/);
