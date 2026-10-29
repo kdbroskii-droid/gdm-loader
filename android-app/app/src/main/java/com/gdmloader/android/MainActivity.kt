@@ -5,6 +5,9 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Environment
+import android.provider.Settings
+import java.io.File
 import android.os.Bundle
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
@@ -49,9 +52,6 @@ class MainActivity : Activity() {
         webView.addJavascriptInterface(GameDetectorBridge(), "GDMAndroidBridge")
         setContentView(webView)
         webView.loadUrl("https://appassets.androidplatform.net/assets/www/index.html")
-        if (savedInstanceState == null && savedTree() == null) {
-            webView.postDelayed({ if (!isFinishing && savedTree() == null) chooseWorkspaceFolder() }, 900)
-        }
     }
 
     private fun savedTree(): DocumentFile? {
@@ -100,6 +100,71 @@ class MainActivity : Activity() {
         if (!::webView.isInitialized) return
         val payload = JSONObject().put("success", success).put("message", message)
         runOnUiThread { webView.evaluateJavascript("window.$function && window.$function(${payload})", null) }
+    }
+
+    private fun hasAllFilesAccess(): Boolean = android.os.Build.VERSION.SDK_INT < 30 || Environment.isExternalStorageManager()
+
+    private fun requestAllFilesAccess() {
+        if (android.os.Build.VERSION.SDK_INT < 30 || Environment.isExternalStorageManager()) return
+        try { startActivity(Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, Uri.parse("package:$packageName"))) }
+        catch (_: Exception) { try { startActivity(Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)) } catch (_: Exception) {} }
+    }
+
+    private fun installedApps(): String {
+        val out = JSONArray()
+        val pm = packageManager
+        val apps = if (android.os.Build.VERSION.SDK_INT >= 33) pm.getInstalledApplications(PackageManager.ApplicationInfoFlags.of(0)) else {
+            @Suppress("DEPRECATION")
+            pm.getInstalledApplications(0)
+        }
+        apps.sortedBy { pm.getApplicationLabel(it).toString().lowercase() }.forEach { app ->
+            out.put(JSONObject().put("name", pm.getApplicationLabel(app).toString()).put("packageName", app.packageName)
+                .put("systemApp", (app.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0)
+                .put("launchable", pm.getLaunchIntentForPackage(app.packageName) != null))
+        }
+        return out.toString()
+    }
+
+    private fun deviceFiles(): String {
+        if (!hasAllFilesAccess()) return JSONObject().put("error", "All files access is not granted.").toString()
+        val out = JSONArray()
+        val root = Environment.getExternalStorageDirectory()
+        fun walk(dir: File, depth: Int) {
+            if (depth > 4 || out.length() >= 1200) return
+            val children = try { dir.listFiles()?.sortedBy { it.name.lowercase() } ?: return } catch (_: SecurityException) { return }
+            for (child in children) {
+                if (child.name == "Android") { out.put(JSONObject().put("path", "Android").put("directory", true).put("restricted", true).put("size", 0)); continue }
+                val rel = child.absolutePath.removePrefix(root.absolutePath).trimStart('/')
+                out.put(JSONObject().put("path", rel).put("directory", child.isDirectory).put("size", if (child.isFile) child.length() else 0).put("modified", child.lastModified()))
+                if (child.isDirectory) walk(child, depth + 1)
+            }
+        }
+        walk(root, 0)
+        return out.toString()
+    }
+
+    private fun readDeviceFile(path: String): String {
+        if (!hasAllFilesAccess()) return JSONObject().put("error", "All files access is not granted").toString()
+        val root = Environment.getExternalStorageDirectory().canonicalFile
+        return try {
+            val file = File(root, path).canonicalFile
+            if (!file.path.startsWith(root.path + File.separator) || !file.isFile) return JSONObject().put("error", "File not found or path rejected").toString()
+            if (file.length() > 1000000) return JSONObject().put("error", "File exceeds 1 MB limit").toString()
+            JSONObject().put("path", path).put("content", file.readText(Charsets.UTF_8)).toString()
+        } catch (e: Exception) { JSONObject().put("error", e.message ?: "Read failed").toString() }
+    }
+
+    private fun writeDeviceFile(path: String, content: String): String {
+        if (!hasAllFilesAccess()) return JSONObject().put("success", false).put("message", "All files access is not granted").toString()
+        if (content.length > 1000000) return JSONObject().put("success", false).put("message", "File exceeds 1 MB limit").toString()
+        val root = Environment.getExternalStorageDirectory().canonicalFile
+        return try {
+            val file = File(root, path).canonicalFile
+            if (!file.path.startsWith(root.path + File.separator) || file.isDirectory) return JSONObject().put("success", false).put("message", "Path rejected").toString()
+            file.parentFile?.mkdirs()
+            file.writeText(content, Charsets.UTF_8)
+            JSONObject().put("success", true).put("message", "Saved $path").toString()
+        } catch (e: Exception) { JSONObject().put("success", false).put("message", e.message ?: "Write failed").toString() }
     }
 
     private fun packageInfo() = if (android.os.Build.VERSION.SDK_INT >= 33) {
@@ -185,6 +250,12 @@ class MainActivity : Activity() {
                 startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); true
             } catch (_: ActivityNotFoundException) { false } catch (_: SecurityException) { false }
         }
+        @JavascriptInterface fun getInstalledApps(): String = installedApps()
+        @JavascriptInterface fun hasAllFilesAccess(): Boolean = this@MainActivity.hasAllFilesAccess()
+        @JavascriptInterface fun requestAllFilesAccess() { runOnUiThread { this@MainActivity.requestAllFilesAccess() } }
+        @JavascriptInterface fun listDeviceFiles(): String = deviceFiles()
+        @JavascriptInterface fun readDeviceFile(path: String): String = readDeviceFile(path)
+        @JavascriptInterface fun writeDeviceFile(path: String, content: String): String = writeDeviceFile(path, content)
         @JavascriptInterface fun hasWorkspaceAccess(): Boolean = savedTree() != null
         @JavascriptInterface fun getWorkspaceName(): String = savedTree()?.getName() ?: ""
         @JavascriptInterface fun chooseWorkspaceFolder() { runOnUiThread { this@MainActivity.chooseWorkspaceFolder() } }
