@@ -21,6 +21,16 @@ A normal Android app cannot load native code into another installed app's privat
 
 GD M must not download or redistribute proprietary Geometry Dash APKs/assets. Re-signing a modified APK may require uninstalling the original package first and can affect saves, purchases, updates, and online compatibility; back up important data before testing.
 
+## Latest successful build
+
+- **Status:** Successful — all CI jobs passed.
+- **Built:** 29 October 2026.
+- **Commit:** [`b89b590`](https://github.com/kdbroskii-droid/gdm-loader/commit/b89b590ab2381adb07e0e84874d81be88f49a44b).
+- **Workflow run:** [View build and test results](https://github.com/kdbroskii-droid/gdm-loader/actions/runs/40913841575).
+- **APK artifact:** [Download `gdm-loader-android-debug-apk`](https://github.com/kdbroskii-droid/gdm-loader/actions/runs/40913841575). Open the workflow run and use its **Artifacts** section. GitHub artifacts expire after a limited period.
+
+This confirms the companion Android debug APK builds and the automated tests pass. It does **not** confirm live in-game injection or mod functionality; see [Important current status](#important-current-status).
+
 ## Existing Android companion build
 
 Requirements: Android SDK Platform 35, JDK 17, and Gradle 8.9.
