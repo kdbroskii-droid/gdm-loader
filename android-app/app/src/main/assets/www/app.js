@@ -1,7 +1,7 @@
 (() => {
 "use strict";
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)], KEY="gdm-loader-v1", CLOUD_KEY="gdm-cloud-config-v1", SESSION_KEY="gdm-cloud-session-v1";
-const starter='mod "Starter Mod":\n    on_level_start:\n        show_message("Judsz is running!")\n        jump()\n        rocketup()\n';
+const starter='app "Judsz Demo"\nwindow "Welcome" width 340 height 520\ntheme background "#111827"\ntheme text "#f9fafb"\nlabel "Welcome to Judsz"\nlabel "This interface is generated from a script."\nbutton "Say hello" action "hello"\non_click "hello" show_message "Hello from your working Judsz UI!"\nwait 5 seconds then log "Five-second automation fired."\nlog "Judsz preview started."\n';
 const examples={
 "starter.judsz":starter,
 "speed-demo.judsz":'mod "Speed Demo":\n    on_level_start:\n        show_message("Speed demo loaded")\n        set_player_speed(1.2)\n',
