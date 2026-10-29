@@ -13,7 +13,13 @@ bool valid_box(const Hitbox& box) {
            box.width > 0.0f && box.height > 0.0f;
 }
 
-Hitbox predict_obstacle_box(const Obstacle& obstacle, float t) {\n    return {obstacle.hitbox.x + obstacle.velocity_x * t,\n            obstacle.hitbox.y + obstacle.velocity_y * t,\n            obstacle.hitbox.width, obstacle.hitbox.height};\n}\n\nbool overlaps(const Hitbox& a, const Hitbox& b) {
+Hitbox predict_obstacle_box(const Obstacle& obstacle, float t) {
+    return {obstacle.hitbox.x + obstacle.velocity_x * t,
+            obstacle.hitbox.y + obstacle.velocity_y * t,
+            obstacle.hitbox.width, obstacle.hitbox.height};
+}
+
+bool overlaps(const Hitbox& a, const Hitbox& b) {
     return a.x < b.x + b.width && a.x + a.width > b.x &&
            a.y < b.y + b.height && a.y + a.height > b.y;
 }
@@ -54,7 +60,9 @@ Decision choose_action(const PlayerState& player, const Obstacle* obstacles,
         return invalid;
     }
     for (std::size_t i = 0; i < count; ++i) {
-        if (!valid_box(obstacles[i].hitbox) ||\n            !std::isfinite(obstacles[i].velocity_x) ||\n            !std::isfinite(obstacles[i].velocity_y)) return invalid;
+        if (!valid_box(obstacles[i].hitbox) ||
+            !std::isfinite(obstacles[i].velocity_x) ||
+            !std::isfinite(obstacles[i].velocity_y)) return invalid;
     }
     if (count == 0) return {Action::None, 0, horizon, true};
 
