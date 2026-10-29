@@ -15,6 +15,8 @@ struct Hitbox {
 struct Obstacle {
     Hitbox hitbox;
     uint32_t id;
+    float velocity_x;  // World units per second; must be relative to player coordinates.
+    float velocity_y;
 };
 
 struct PlayerState {
