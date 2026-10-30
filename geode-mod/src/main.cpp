@@ -31,8 +31,8 @@ public:
         if (!CCLayerColor::initWithColor(ccc4(0, 7, 20, 190))) return false;
 
         const auto size = CCDirector::sharedDirector()->getWinSize();
-        const float panelWidth = std::min(size.width * 0.78f, 440.f);
-        const float panelHeight = std::min(size.height * 0.88f, 500.f);
+        const float panelWidth = std::min(size.width * 0.88f, 480.f);
+        const float panelHeight = std::min(size.height * 0.90f, 560.f);
 
         auto* panel = CCLayerColor::create(
             ccc4(3, 17, 42, 255), panelWidth, panelHeight
@@ -54,18 +54,18 @@ public:
         addBorder(0.f, 0.f, border, panelHeight);
         addBorder(panelWidth - border, 0.f, border, panelHeight);
 
-        auto* title = CCLabelBMFont::create("GD M  |  MOD MENU", "bigFont.fnt");
+        auto* title = CCLabelBMFont::create("JUDSZ  |  MOD MENU", "bigFont.fnt");
         if (title) {
-            title->setScale(0.62f);
+            title->setScale(std::min(0.62f, panelWidth / 520.f));
             title->setPosition(panelWidth / 2.f, panelHeight - 32.f);
             panel->addChild(title);
         }
 
         auto* subtitle = CCLabelBMFont::create(
-            "Blue interface - Geode-powered prototype", "goldFont.fnt"
+            "IN-GAME OVERLAY - LOCAL FEATURES", "goldFont.fnt"
         );
         if (subtitle) {
-            subtitle->setScale(0.34f);
+            subtitle->setScale(std::min(0.34f, panelWidth / 760.f));
             subtitle->setPosition(panelWidth / 2.f, panelHeight - 58.f);
             panel->addChild(subtitle);
         }
@@ -74,10 +74,10 @@ public:
             g_autoPlayEnabled ? "Auto Play Level: ON" : "Auto Play Level: OFF",
             "bigFont.fnt"
         );
-        auto* completeLabel = CCLabelBMFont::create("Auto Complete RobTop", "bigFont.fnt");
-        auto* currentLevelLabel = CCLabelBMFont::create("Auto Complete Level", "bigFont.fnt");
+        auto* completeLabel = CCLabelBMFont::create("Complete RobTop Levels", "bigFont.fnt");
+        auto* currentLevelLabel = CCLabelBMFont::create("Complete Current Level", "bigFont.fnt");
         auto* gemsLabel = CCLabelBMFont::create("+1000 Gems", "bigFont.fnt");
-        auto* unlocksLabel = CCLabelBMFont::create("Unlock All", "bigFont.fnt");
+        auto* unlocksLabel = CCLabelBMFont::create("Complete Everything", "bigFont.fnt");
         auto* closeLabel = CCLabelBMFont::create("CLOSE", "bigFont.fnt");
 
         auto* menu = CCMenu::create();
@@ -85,12 +85,12 @@ public:
             return false;
         }
 
-        autoLabel->setScale(0.48f);
-        completeLabel->setScale(0.40f);
-        currentLevelLabel->setScale(0.40f);
-        gemsLabel->setScale(0.48f);
-        unlocksLabel->setScale(0.48f);
-        closeLabel->setScale(0.5f);
+        autoLabel->setScale(std::min(0.48f, panelWidth / 650.f));
+        completeLabel->setScale(std::min(0.40f, panelWidth / 720.f));
+        currentLevelLabel->setScale(std::min(0.40f, panelWidth / 720.f));
+        gemsLabel->setScale(std::min(0.48f, panelWidth / 650.f));
+        unlocksLabel->setScale(std::min(0.48f, panelWidth / 650.f));
+        closeLabel->setScale(std::min(0.5f, panelWidth / 620.f));
 
         auto* autoItem = CCMenuItemLabel::create(
             autoLabel, this, menu_selector(GDMOverlay::onToggleAutoPlay)
@@ -120,8 +120,8 @@ public:
         menu->addChild(gemsItem);
         menu->addChild(unlocksItem);
         menu->addChild(closeItem);
-        menu->alignItemsVerticallyWithPadding(30.f);
-        menu->setPosition(panelWidth / 2.f, panelHeight / 2.f - 10.f);
+        menu->alignItemsVerticallyWithPadding(std::max(12.f, panelHeight * 0.027f));
+        menu->setPosition(panelWidth / 2.f, panelHeight * 0.43f);
         panel->addChild(menu);
         return true;
     }
@@ -129,7 +129,7 @@ public:
     void onToggleAutoPlay(CCObject*) {
         g_autoPlayEnabled = !g_autoPlayEnabled;
         FLAlertLayer::create(
-            "GD M",
+            "Judsz",
             g_autoPlayEnabled
                 ? "Auto Play enabled. This is an early prototype and is not verified for every level or game mode."
                 : "Auto Play disabled.",
@@ -220,14 +220,14 @@ static void openGDMOverlay() {
     if (!scene || scene->getChildByID("gdm-overlay"_spr)) return;
     auto* overlay = GDMOverlay::create();
     if (!overlay) {
-        FLAlertLayer::create("GD M", "Could not create the GD M menu.", "OK")->show();
+        FLAlertLayer::create("Judsz", "Could not create the Judsz menu.", "OK")->show();
         return;
     }
     overlay->setID("gdm-overlay"_spr);
     scene->addChild(overlay, 999999);
 }
 
-// Add GD M's own entry point to the Geometry Dash main menu.
+// Add Judsz entry point to the Geometry Dash main menu.
 class $modify(GDMMenuLayer, MenuLayer) {
     bool init() {
         if (!MenuLayer::init()) return false;
@@ -238,7 +238,7 @@ class $modify(GDMMenuLayer, MenuLayer) {
             return true;
         }
 
-        auto* mark = CCLabelBMFont::create("M", "bigFont.fnt");
+        auto* mark = CCLabelBMFont::create("J", "bigFont.fnt");
         if (!mark) return true;
         mark->setScale(0.8f);
 

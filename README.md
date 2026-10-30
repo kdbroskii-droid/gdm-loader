@@ -1,6 +1,6 @@
-# GD M / Judsz
+# Judsz
 
-GD M is an Android launcher/mod project for Geometry Dash. The integrated launcher workflow now uses the official Geode Android Launcher source as its native runtime foundation, builds the GD M Geode mod, bundles that mod inside the launcher assets, and rebrands the launcher as GD M / Judsz.
+Judsz is an Android launcher/mod project for Geometry Dash. The integrated launcher workflow now uses the official Geode Android Launcher source as its native runtime foundation, builds the GD M Geode mod, bundles that mod inside the launcher assets, and rebrands the launcher as Judsz.
 
 ## Integrated launcher workflow
 
@@ -27,6 +27,6 @@ To create the APK later, open the repository's **Actions** tab, select **Prepare
 
 ## Safety, compatibility, and licensing
 
-GD M must not bundle or redistribute proprietary Geometry Dash APKs, assets, or game data. Users must obtain the game through legitimate channels. Keep backups of game saves. Modding can affect compatibility with updates and online features. GD M is not affiliated with RobTop Games or the Geode team.
+Judsz must not bundle or redistribute proprietary Geometry Dash APKs, assets, or game data. Users must obtain the game through legitimate channels. Keep backups of game saves. Modding can affect compatibility with updates and online features. GD M is not affiliated with RobTop Games or the Geode team.
 
 The launcher source is licensed under the Boost Software License 1.0. The upstream license text is retained in `licenses/GEODE-ANDROID-LAUNCHER-BOOST-1.0.txt`; any redistributed derivative must preserve required upstream notices. See the [official launcher repository](https://github.com/geode-sdk/android-launcher).
