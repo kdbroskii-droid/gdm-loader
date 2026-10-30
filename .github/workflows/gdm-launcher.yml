@@ -2,11 +2,6 @@ name: Prepare GD M Android launcher APK
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "geode-mod/**"
-      - ".github/workflows/gdm-launcher.yml"
-      - "docs/ANDROID-LAUNCHER-INTEGRATION.md"
 
 permissions:
   contents: read
