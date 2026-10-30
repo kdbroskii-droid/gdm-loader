@@ -4,6 +4,8 @@
 #include <Geode/binding/PlayLayer.hpp>
 #include <Geode/binding/PlayerObject.hpp>
 #include <Geode/binding/GameObject.hpp>
+#include <Geode/binding/GameStatsManager.hpp>
+#include <Geode/binding/GJGameLevel.hpp>
 #include <algorithm>
 #include <cmath>
 
@@ -128,25 +130,74 @@ public:
     }
 
     void onAutoCompleteRobTop(CCObject*) {
+        auto* stats = GameStatsManager::sharedState();
+        if (!stats) {
+            FLAlertLayer::create("Auto Complete RobTop", "Game stats are not available right now.", "OK")->show();
+            return;
+        }
+
+        // Built-in RobTop main levels use IDs 1 through 22 in current Geometry Dash.
+        int completed = 0;
+        for (int levelID = 1; levelID <= 22; ++levelID) {
+            auto* level = GJGameLevel::create();
+            if (!level) continue;
+            level->setLevelID(levelID);
+            if (!stats->hasCompletedMainLevel(levelID)) {
+                stats->markLevelAsCompletedAndClaimed(level);
+                ++completed;
+            }
+            level->release();
+        }
+        stats->preSaveGameStats();
         FLAlertLayer::create(
             "Auto Complete RobTop",
-            "Menu button added. The automatic RobTop-level completion logic is not implemented yet.",
+            CCString::createWithFormat("Processed the 22 built-in RobTop levels. Newly marked complete: %d. This changes local save data; online leaderboard validity is not guaranteed.", completed)->getCString(),
             "OK"
         )->show();
     }
 
     void onAddGems(CCObject*) {
+        auto* stats = GameStatsManager::sharedState();
+        if (!stats) {
+            FLAlertLayer::create("+500 Gems", "Game stats are not available right now.", "OK")->show();
+            return;
+        }
+
+        // Geometry Dash's gem counter is stored under stat key "14".
+        const int current = stats->getStat("14");
+        stats->setStat("14", current + 500);
+        stats->preSaveGameStats();
         FLAlertLayer::create(
             "+500 Gems",
-            "Menu button added. This prototype does not modify saved gems yet.",
+            "Added 500 gems to the local save data.",
             "OK"
         )->show();
     }
 
     void onUnlockAll(CCObject*) {
+        auto* stats = GameStatsManager::sharedState();
+        if (!stats) {
+            FLAlertLayer::create("Unlock All", "Game stats are not available right now.", "OK")->show();
+            return;
+        }
+
+        // UnlockType is an enum in the game bindings. Use the game's native
+        // item-state API for the known cosmetic categories, rather than editing
+        // raw save-file strings. IDs are bounded to avoid touching unrelated stats.
+        int unlocked = 0;
+        for (int type = 0; type <= 12; ++type) {
+            const auto unlockType = static_cast<UnlockType>(type);
+            for (int id = 1; id <= 500; ++id) {
+                if (!stats->isItemUnlocked(unlockType, id)) {
+                    stats->toggleEnableItem(unlockType, id, true);
+                    ++unlocked;
+                }
+            }
+        }
+        stats->preSaveGameStats();
         FLAlertLayer::create(
             "Unlock All",
-            "Menu button added. Unlocking icons, colours and trails is not implemented yet.",
+            CCString::createWithFormat("Processed cosmetic unlocks. Newly enabled item IDs: %d. This is a local-save modification.", unlocked)->getCString(),
             "OK"
         )->show();
     }
