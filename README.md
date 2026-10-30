@@ -1,37 +1,32 @@
 # GD M / Judsz
 
-GD M is an independent Android launcher/mod project for Geometry Dash. The intended app should launch a locally installed, compatible Geometry Dash game through the Android native loader, then show GD M's own in-game menu (the floating cyan **M** button and blue/cyan panel).
+GD M is an Android launcher/mod project for Geometry Dash. The integrated launcher workflow now uses the official Geode Android Launcher source as its native runtime foundation, builds the GD M Geode mod, bundles that mod inside the launcher assets, and rebrands the launcher as GD M / Judsz.
 
-## Current implementation status — do not mistake scaffolding for the app
+## Integrated launcher workflow
 
-The repository currently contains:
-- A WebView-based companion UI and APK inspector in `android-app/`.
-- A Geode mod prototype in `geode-mod/` with an M entry point and early Auto Play logic.
-- Existing CI and native planner tests.
+The new workflow is `.github/workflows/gdm-launcher.yml`. It:
+1. Checks out this repository and the pinned upstream Geode Android Launcher release `1.9.0`.
+2. Builds the current GD M mod for Android 64-bit.
+3. Copies the resulting `.geode` package into the launcher's internal `assets/mods` directory. The upstream launcher copies internal mods into its managed Geode mods folder at game startup.
+4. Rebrands the launcher application ID and main app labels to GD M / Judsz.
+5. Builds a debug APK and uploads it as the `gdm-android-launcher-debug` workflow artifact.
 
-**The current Android app is not yet a Geode Android Launcher fork and does not launch a modded game runtime.** APK inspection is read-only; it does not patch the selected APK. The mod prototype's toggles for Unlimited Resources and Complete Everything are not implemented, and Auto Play has not been validated in-game. Do not label any of these features complete until they are implemented and tested.
+This workflow has been committed but **has not been run**. Therefore there is not yet a verified APK artifact or device-tested result. The source is pinned to upstream tag `1.9.0` for reproducibility; review upstream updates before changing that pin.
 
-## Correct implementation direction
+## Current limitations
 
-Use the official [Geode Android Launcher source](https://github.com/geode-sdk/android-launcher) as the Android runtime/launch foundation rather than trying to inject into another app from a normal Android process. Its Android launcher handles native game startup, Geode setup, and game-specific compatibility work that this scaffold does not contain.
+- The old `android-app/` project remains a separate WebView companion and APK inspector. It is not the native game launcher.
+- The existing `geode-mod/` source is still a prototype. Auto Play is heuristic and not validated across all levels/modes.
+- Unlimited Resources and Complete Everything are not implemented. They must not be represented as working features until real handlers exist and are tested.
+- The upstream launcher keeps its own setup and recovery behavior. First launch may require setup and confirmation; automatic launching must only be enabled after setup succeeds.
+- A successful build alone will not prove runtime compatibility. A real Android device smoke test is still required.
 
-The intended integration work is:
-1. Port/fork the official launcher source into this repository, retaining required upstream license notices.
-2. Rebrand the app and package identifiers to GD M / Judsz without breaking the native launcher lifecycle, game activity, update path, or save redirection.
-3. Package the GD M Geode mod with the launcher and install/update it into the launcher's own mod directory before starting the game.
-4. Replace the mod's placeholder menu with the requested floating M button and responsive blue/cyan panel.
-5. Implement each advertised toggle against real supported game APIs; do not show a toggle as functional until it has a working handler.
-6. Make launch behavior recoverable: provide an explicit-launch/safe-mode route if automatic launch crashes, and never delete or overwrite the user's original game APK or saves.
-7. Add automated source/manifest/package checks, then build and test on a real Android device separately.
+## Build artifact
 
-See [the launcher integration notes](docs/ANDROID-LAUNCHER-INTEGRATION.md) for boundaries and acceptance criteria.
+To create the APK later, open the repository's **Actions** tab, select **Prepare GD M Android launcher APK**, and run the workflow manually. The APK will be available under the `gdm-android-launcher-debug` artifact if the workflow succeeds. No build was run as part of the source changes in this commit.
 
-## Build status
+## Safety, compatibility, and licensing
 
-No new build has been run for this change. A successful build of the existing companion APK or a `.geode` file would not prove that the integrated launcher works.
+GD M must not bundle or redistribute proprietary Geometry Dash APKs, assets, or game data. Users must obtain the game through legitimate channels. Keep backups of game saves. Modding can affect compatibility with updates and online features. GD M is not affiliated with RobTop Games or the Geode team.
 
-## Legal and safety boundaries
-
-GD M must not bundle or redistribute proprietary Geometry Dash APKs, assets, or game data. Users must obtain the game through legitimate channels. A modified/re-signed game package can affect updates, save data, purchases, and online compatibility; keep backups and preserve the original installation. GD M is not affiliated with RobTop Games or the Geode team.
-
-The official launcher is licensed under the Boost Software License 1.0; any port must retain the applicable notices and license text. See the [upstream repository](https://github.com/geode-sdk/android-launcher) for its current source and license.
+The launcher source is licensed under the Boost Software License 1.0. The upstream license text is retained in `licenses/GEODE-ANDROID-LAUNCHER-BOOST-1.0.txt`; any redistributed derivative must preserve required upstream notices. See the [official launcher repository](https://github.com/geode-sdk/android-launcher).
