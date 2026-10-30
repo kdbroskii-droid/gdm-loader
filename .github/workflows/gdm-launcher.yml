@@ -10,17 +10,11 @@ jobs:
   build-gdm-launcher:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout GD M project
+      - name: Checkout GD M project and native launcher submodule
         uses: actions/checkout@v4
         with:
           path: gdm
-
-      - name: Checkout pinned Geode Android Launcher source
-        uses: actions/checkout@v4
-        with:
-          repository: geode-sdk/android-launcher
-          ref: 1.9.0
-          path: upstream-launcher
+          submodules: recursive
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -41,29 +35,30 @@ jobs:
           target: Android64
           sdk: given
 
-      - name: Integrate GD M mod and rebrand launcher
+      - name: Integrate GD M mod and rebrand native launcher
         shell: bash
         run: |
           set -euo pipefail
           MOD_DIR="${{ steps.mod.outputs.build-output }}"
           MOD_FILE="$(find "$MOD_DIR" -maxdepth 2 -type f -name '*.geode' -print -quit)"
           test -n "$MOD_FILE"
-          mkdir -p upstream-launcher/app/src/main/assets/mods
-          cp "$MOD_FILE" upstream-launcher/app/src/main/assets/mods/gdm-loader.geode
+          mkdir -p gdm/native-launcher/app/src/main/assets/mods
+          cp "$MOD_FILE" gdm/native-launcher/app/src/main/assets/mods/gdm-loader.geode
 
           python3 - <<'PY'
           from pathlib import Path
           import re
 
-          gradle_file = Path("upstream-launcher/app/build.gradle.kts")
+          root = Path("gdm/native-launcher")
+          gradle_file = root / "app/build.gradle.kts"
           gradle = gradle_file.read_text()
           old = 'applicationId = "com.geode.launcher"'
           new = 'applicationId = "com.judsz.gdm"'
           if old not in gradle:
-              raise SystemExit("Could not find upstream standard applicationId; source layout changed.")
+              raise SystemExit("Could not find upstream standard applicationId; launcher source layout changed.")
           gradle_file.write_text(gradle.replace(old, new, 1))
 
-          strings_file = Path("upstream-launcher/app/src/main/res/values/strings.xml")
+          strings_file = root / "app/src/main/res/values/strings.xml"
           strings = strings_file.read_text()
           strings = re.sub(r'(<string name="app_name"[^>]*>).*?(</string>)',
                            r'\1GD M / Judsz\2', strings, count=1)
@@ -73,7 +68,7 @@ jobs:
           PY
 
       - name: Build debug APK
-        working-directory: upstream-launcher
+        working-directory: gdm/native-launcher
         run: |
           chmod +x ./gradlew
           ./gradlew --no-daemon :app:assembleStandardDebug
@@ -82,6 +77,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: gdm-android-launcher-debug
-          path: upstream-launcher/app/build/outputs/apk/standard/debug/*.apk
+          path: gdm/native-launcher/app/build/outputs/apk/standard/debug/*.apk
           if-no-files-found: error
           retention-days: 30
