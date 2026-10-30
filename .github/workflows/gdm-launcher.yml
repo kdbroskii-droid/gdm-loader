@@ -38,11 +38,6 @@ jobs:
         with:
           packages: "platform-tools platforms;android-37 build-tools;37.0.0 ndk;30.0.16248370 cmake;3.21.0"
 
-      - name: Install Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: "9.1.0"
-
       - name: Build GD M Geode mod
         id: mod
         uses: geode-sdk/build-geode-mod@main
