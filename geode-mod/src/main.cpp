@@ -32,16 +32,27 @@ public:
 
         const auto size = CCDirector::sharedDirector()->getWinSize();
         const float panelWidth = std::min(size.width * 0.78f, 440.f);
-        const float panelHeight = std::min(size.height * 0.76f, 390.f);
+        const float panelHeight = std::min(size.height * 0.88f, 500.f);
 
         auto* panel = CCLayerColor::create(
-            ccc4(3, 17, 42, 250), panelWidth, panelHeight
+            ccc4(3, 17, 42, 255), panelWidth, panelHeight
         );
         panel->setPosition(
             (size.width - panelWidth) / 2.f,
             (size.height - panelHeight) / 2.f
         );
         this->addChild(panel, 1);
+
+        const float border = 3.f;
+        auto addBorder = [&](float x, float y, float w, float h) {
+            auto* edge = CCLayerColor::create(ccc4(0, 220, 255, 255), w, h);
+            edge->setPosition(x, y);
+            panel->addChild(edge, 5);
+        };
+        addBorder(0.f, 0.f, panelWidth, border);
+        addBorder(0.f, panelHeight - border, panelWidth, border);
+        addBorder(0.f, 0.f, border, panelHeight);
+        addBorder(panelWidth - border, 0.f, border, panelHeight);
 
         auto* title = CCLabelBMFont::create("GD M  |  MOD MENU", "bigFont.fnt");
         if (title) {
@@ -65,7 +76,7 @@ public:
         );
         auto* completeLabel = CCLabelBMFont::create("Auto Complete RobTop", "bigFont.fnt");
         auto* currentLevelLabel = CCLabelBMFont::create("Auto Complete Level", "bigFont.fnt");
-        auto* gemsLabel = CCLabelBMFont::create("+500 Gems", "bigFont.fnt");
+        auto* gemsLabel = CCLabelBMFont::create("+1000 Gems", "bigFont.fnt");
         auto* unlocksLabel = CCLabelBMFont::create("Unlock All", "bigFont.fnt");
         auto* closeLabel = CCLabelBMFont::create("CLOSE", "bigFont.fnt");
 
@@ -109,7 +120,7 @@ public:
         menu->addChild(gemsItem);
         menu->addChild(unlocksItem);
         menu->addChild(closeItem);
-        menu->alignItemsVerticallyWithPadding(22.f);
+        menu->alignItemsVerticallyWithPadding(30.f);
         menu->setPosition(panelWidth / 2.f, panelHeight / 2.f - 10.f);
         panel->addChild(menu);
         return true;
@@ -174,17 +185,17 @@ public:
     void onAddGems(CCObject*) {
         auto* stats = GameStatsManager::sharedState();
         if (!stats) {
-            FLAlertLayer::create("+500 Gems", "Game stats are not available right now.", "OK")->show();
+            FLAlertLayer::create("+1000 Gems", "Game stats are not available right now.", "OK")->show();
             return;
         }
 
         // Geometry Dash's gem counter is stored under stat key "14".
         const int current = stats->getStat("14");
-        stats->setStat("14", current + 500);
+        stats->setStat("14", current + 1000);
         stats->preSaveGameStats();
         FLAlertLayer::create(
-            "+500 Gems",
-            "Added 500 gems to the local save data.",
+            "+1000 Gems",
+            "Added 1000 gems to the local save data.",
             "OK"
         )->show();
     }
@@ -203,6 +214,18 @@ public:
         this->removeFromParentAndCleanup(true);
     }
 };
+
+static void openGDMOverlay() {
+    auto* scene = CCDirector::sharedDirector()->getRunningScene();
+    if (!scene || scene->getChildByID("gdm-overlay"_spr)) return;
+    auto* overlay = GDMOverlay::create();
+    if (!overlay) {
+        FLAlertLayer::create("GD M", "Could not create the GD M menu.", "OK")->show();
+        return;
+    }
+    overlay->setID("gdm-overlay"_spr);
+    scene->addChild(overlay, 999999);
+}
 
 // Add GD M's own entry point to the Geometry Dash main menu.
 class $modify(GDMMenuLayer, MenuLayer) {
@@ -231,17 +254,7 @@ class $modify(GDMMenuLayer, MenuLayer) {
     }
 
     void onOpenGDM(CCObject*) {
-        auto* scene = CCDirector::sharedDirector()->getRunningScene();
-        if (!scene) return;
-        if (scene->getChildByID("gdm-overlay"_spr)) return;
-
-        auto* overlay = GDMOverlay::create();
-        if (!overlay) {
-            FLAlertLayer::create("GD M", "Could not create the GD M menu.", "OK")->show();
-            return;
-        }
-        overlay->setID("gdm-overlay"_spr);
-        scene->addChild(overlay, 9999);
+        openGDMOverlay();
     }
 };
 
@@ -249,6 +262,28 @@ class $modify(GDMMenuLayer, MenuLayer) {
 // it does not use screenshots, textures, colors, OCR, or level names. Its behaviour
 // is not yet validated for every mode, so it remains opt-in.
 class $modify(GDMAutoPlayLayer, PlayLayer) {
+    bool init(GJGameLevel* level, bool useReplay, bool dontCreateObjects) {
+        if (!PlayLayer::init(level, useReplay, dontCreateObjects)) return false;
+        auto* label = CCLabelBMFont::create("M", "bigFont.fnt");
+        if (label) {
+            label->setScale(0.65f);
+            auto* item = CCMenuItemLabel::create(label, this, menu_selector(GDMAutoPlayLayer::onOpenGDMFromPlay));
+            if (item) {
+                auto* menu = CCMenu::create();
+                if (menu) {
+                    menu->addChild(item);
+                    auto win = CCDirector::sharedDirector()->getWinSize();
+                    menu->setPosition(win.width - 28.f, win.height - 38.f);
+                    menu->setID("gdm-gameplay-button"_spr);
+                    this->addChild(menu, 99999);
+                }
+            }
+        }
+        return true;
+    }
+
+    void onOpenGDMFromPlay(CCObject*) { openGDMOverlay(); }
+
     struct Fields {
         bool jumpHeld = false;
         float jumpReleaseTimer = 0.f;
