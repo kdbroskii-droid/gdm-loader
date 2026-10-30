@@ -1,0 +1,97 @@
+name: Prepare GD M Android launcher APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "geode-mod/**"
+      - ".github/workflows/gdm-launcher.yml"
+      - "docs/ANDROID-LAUNCHER-INTEGRATION.md"
+
+permissions:
+  contents: read
+
+jobs:
+  build-gdm-launcher:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout GD M project
+        uses: actions/checkout@v4
+        with:
+          path: gdm
+
+      - name: Checkout pinned Geode Android Launcher source
+        uses: actions/checkout@v4
+        with:
+          repository: geode-sdk/android-launcher
+          ref: 1.9.0
+          path: upstream-launcher
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools platforms;android-37 build-tools;37.0.0 ndk;30.0.16248370 cmake;3.21.0"
+
+      - name: Install Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.1.0"
+
+      - name: Build GD M Geode mod
+        id: mod
+        uses: geode-sdk/build-geode-mod@main
+        with:
+          path: gdm/geode-mod
+          target: Android64
+          sdk: given
+
+      - name: Integrate GD M mod and rebrand launcher
+        shell: bash
+        run: |
+          set -euo pipefail
+          MOD_DIR="${{ steps.mod.outputs.build-output }}"
+          MOD_FILE="$(find "$MOD_DIR" -maxdepth 2 -type f -name '*.geode' -print -quit)"
+          test -n "$MOD_FILE"
+          mkdir -p upstream-launcher/app/src/main/assets/mods
+          cp "$MOD_FILE" upstream-launcher/app/src/main/assets/mods/gdm-loader.geode
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          gradle_file = Path("upstream-launcher/app/build.gradle.kts")
+          gradle = gradle_file.read_text()
+          old = 'applicationId = "com.geode.launcher"'
+          new = 'applicationId = "com.judsz.gdm"'
+          if old not in gradle:
+              raise SystemExit("Could not find upstream standard applicationId; source layout changed.")
+          gradle_file.write_text(gradle.replace(old, new, 1))
+
+          strings_file = Path("upstream-launcher/app/src/main/res/values/strings.xml")
+          strings = strings_file.read_text()
+          strings = re.sub(r'(<string name="app_name"[^>]*>).*?(</string>)',
+                           r'\1GD M / Judsz\2', strings, count=1)
+          strings = re.sub(r'(<string name="launcher_title"[^>]*>).*?(</string>)',
+                           r'\1GD M\2', strings, count=1)
+          strings_file.write_text(strings)
+          PY
+
+      - name: Build debug APK
+        working-directory: upstream-launcher
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon :app:assembleStandardDebug
+
+      - name: Upload GD M launcher APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: gdm-android-launcher-debug
+          path: upstream-launcher/app/build/outputs/apk/standard/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
