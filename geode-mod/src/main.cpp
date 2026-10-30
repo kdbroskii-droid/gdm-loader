@@ -190,32 +190,11 @@ public:
     }
 
     void onUnlockAll(CCObject*) {
-        auto* stats = GameStatsManager::sharedState();
-        if (!stats) {
-            FLAlertLayer::create("Unlock All", "Game stats are not available right now.", "OK")->show();
-            return;
-        }
-
-        // Use native unlock methods for cosmetic categories. Keep IDs bounded
-        // to the game's normal icon/color ranges instead of editing raw save data.
-        int unlocked = 0;
-        for (int type = 0; type <= 10; ++type) {
-            const auto iconType = static_cast<IconType>(type);
-            for (int id = 1; id <= 500; ++id) {
-                stats->unlockIcon(id, iconType);
-                ++unlocked;
-            }
-        }
-        for (int type = 0; type <= 12; ++type) {
-            const auto unlockType = static_cast<UnlockType>(type);
-            for (int id = 1; id <= 100; ++id) {
-                stats->unlockColor(id, unlockType);
-            }
-        }
-        stats->preSaveGameStats();
+        // The current Geometry Dash bindings do not expose unlockIcon/unlockColor.
+        // Avoid calling nonexistent methods or claiming cosmetics were unlocked.
         FLAlertLayer::create(
             "Unlock All",
-            CCString::createWithFormat("Processed cosmetic unlocks. Newly enabled item IDs: %d. This is a local-save modification.", unlocked)->getCString(),
+            "This feature needs the correct Geometry Dash save-unlock API before it can safely modify your local save. It is not active in this build yet.",
             "OK"
         )->show();
     }
