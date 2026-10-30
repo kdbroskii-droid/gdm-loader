@@ -169,9 +169,9 @@ class $modify(GDMMenuLayer, MenuLayer) {
     }
 };
 
-// Early Auto Play prototype. It reads native hitboxes only; it does not use
-// screenshots, textures, colors, OCR, or level names. Its behaviour is not
-// yet validated for every mode, so it remains opt-in.
+// Early Auto Play prototype. It evaluates native hitboxes in the currently loaded level;
+// it does not use screenshots, textures, colors, OCR, or level names. Its behaviour
+// is not yet validated for every mode, so it remains opt-in.
 class $modify(GDMAutoPlayLayer, PlayLayer) {
     struct Fields {
         bool jumpHeld = false;
