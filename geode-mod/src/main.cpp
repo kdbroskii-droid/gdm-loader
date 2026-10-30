@@ -64,17 +64,19 @@ public:
             "bigFont.fnt"
         );
         auto* completeLabel = CCLabelBMFont::create("Auto Complete RobTop", "bigFont.fnt");
+        auto* currentLevelLabel = CCLabelBMFont::create("Auto Complete Level", "bigFont.fnt");
         auto* gemsLabel = CCLabelBMFont::create("+500 Gems", "bigFont.fnt");
         auto* unlocksLabel = CCLabelBMFont::create("Unlock All", "bigFont.fnt");
         auto* closeLabel = CCLabelBMFont::create("CLOSE", "bigFont.fnt");
 
         auto* menu = CCMenu::create();
-        if (!autoLabel || !completeLabel || !gemsLabel || !unlocksLabel || !closeLabel || !menu) {
+        if (!autoLabel || !completeLabel || !currentLevelLabel || !gemsLabel || !unlocksLabel || !closeLabel || !menu) {
             return false;
         }
 
         autoLabel->setScale(0.48f);
         completeLabel->setScale(0.40f);
+        currentLevelLabel->setScale(0.40f);
         gemsLabel->setScale(0.48f);
         unlocksLabel->setScale(0.48f);
         closeLabel->setScale(0.5f);
@@ -85,6 +87,9 @@ public:
         auto* completeItem = CCMenuItemLabel::create(
             completeLabel, this, menu_selector(GDMOverlay::onAutoCompleteRobTop)
         );
+        auto* currentLevelItem = CCMenuItemLabel::create(
+            currentLevelLabel, this, menu_selector(GDMOverlay::onAutoCompleteCurrentLevel)
+        );
         auto* gemsItem = CCMenuItemLabel::create(
             gemsLabel, this, menu_selector(GDMOverlay::onAddGems)
         );
@@ -94,12 +99,13 @@ public:
         auto* closeItem = CCMenuItemLabel::create(
             closeLabel, this, menu_selector(GDMOverlay::onClose)
         );
-        if (!autoItem || !completeItem || !gemsItem || !unlocksItem || !closeItem) {
+        if (!autoItem || !completeItem || !currentLevelItem || !gemsItem || !unlocksItem || !closeItem) {
             return false;
         }
 
         menu->addChild(autoItem);
         menu->addChild(completeItem);
+        menu->addChild(currentLevelItem);
         menu->addChild(gemsItem);
         menu->addChild(unlocksItem);
         menu->addChild(closeItem);
@@ -153,6 +159,16 @@ public:
             CCString::createWithFormat("Processed the 22 built-in RobTop levels. Newly marked complete: %d. This changes local save data; online leaderboard validity is not guaranteed.", completed)->getCString(),
             "OK"
         )->show();
+    }
+
+    void onAutoCompleteCurrentLevel(CCObject*) {
+        auto* playLayer = PlayLayer::get();
+        if (!playLayer || playLayer->m_hasCompletedLevel) {
+            FLAlertLayer::create("Auto Complete Level", "Open a level first, then press this button while the level is active.", "OK")->show();
+            return;
+        }
+        // Use Geometry Dash's native completion handler and end-of-level flow.
+        playLayer->levelComplete();
     }
 
     void onAddGems(CCObject*) {
