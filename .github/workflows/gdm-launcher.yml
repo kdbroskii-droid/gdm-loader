@@ -76,6 +76,15 @@ jobs:
           strings = re.sub(r'(<string name="launcher_title"[^>]*>).*?(</string>)',
                            r'\1GD M\2', strings, count=1)
           strings_file.write_text(strings)
+
+          # Avoid ThinLTO with the launcher's gold linker: the runner's NDK
+          # does not provide the LLVMgold plugin expected by this linker.
+          cmake_file = root / "app/src/main/cpp/CMakeLists.txt"
+          cmake = cmake_file.read_text()
+          old_ipo = "INTERPROCEDURAL_OPTIMIZATION ON"
+          if old_ipo not in cmake:
+              raise SystemExit("Could not find launcher CMake IPO setting.")
+          cmake_file.write_text(cmake.replace(old_ipo, "INTERPROCEDURAL_OPTIMIZATION OFF", 1))
           PY
 
       - name: Build debug APK
