@@ -146,7 +146,6 @@ public:
                 stats->markLevelAsCompletedAndClaimed(level);
                 ++completed;
             }
-            level->release();
         }
         stats->preSaveGameStats();
         FLAlertLayer::create(
@@ -181,17 +180,20 @@ public:
             return;
         }
 
-        // UnlockType is an enum in the game bindings. Use the game's native
-        // item-state API for the known cosmetic categories, rather than editing
-        // raw save-file strings. IDs are bounded to avoid touching unrelated stats.
+        // Use native unlock methods for cosmetic categories. Keep IDs bounded
+        // to the game's normal icon/color ranges instead of editing raw save data.
         int unlocked = 0;
+        for (int type = 0; type <= 10; ++type) {
+            const auto iconType = static_cast<IconType>(type);
+            for (int id = 1; id <= 500; ++id) {
+                stats->unlockIcon(id, iconType);
+                ++unlocked;
+            }
+        }
         for (int type = 0; type <= 12; ++type) {
             const auto unlockType = static_cast<UnlockType>(type);
-            for (int id = 1; id <= 500; ++id) {
-                if (!stats->isItemUnlocked(unlockType, id)) {
-                    stats->toggleEnableItem(unlockType, id, true);
-                    ++unlocked;
-                }
+            for (int id = 1; id <= 100; ++id) {
+                stats->unlockColor(id, unlockType);
             }
         }
         stats->preSaveGameStats();
