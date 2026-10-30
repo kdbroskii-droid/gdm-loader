@@ -1,60 +1,37 @@
-# GD M / Judsz — standalone Geometry Dash mod loader
+# GD M / Judsz
 
-**Product target:** an Android app with its own mod menu and native runtime that can load mods into a compatible, user-patched Geometry Dash build. GD M is not intended to require the Geode launcher or a `.geode` plugin as its primary runtime.
+GD M is an independent Android launcher/mod project for Geometry Dash. The intended app should launch a locally installed, compatible Geometry Dash game through the Android native loader, then show GD M's own in-game menu (the floating cyan **M** button and blue/cyan panel).
 
-## Important current status
+## Current implementation status — do not mistake scaffolding for the app
 
-- The Android companion APK builds successfully in GitHub Actions.
-- The current app can detect and launch the installed Geometry Dash package.
-- The native JNI library is still a scaffold. It does **not** inject into, patch, or run inside Geometry Dash.
-- The existing Geode module is an optional prototype only; its successful build does **not** meet the standalone-loader requirement.
-- The mod browser/editor UI and built-in test game are not yet connected to the real Geometry Dash process.
-- No in-game mod-menu command or autoplay behavior has been verified on a device.
+The repository currently contains:
+- A WebView-based companion UI and APK inspector in `android-app/`.
+- A Geode mod prototype in `geode-mod/` with an M entry point and early Auto Play logic.
+- Existing CI and native planner tests.
 
-Do not interpret an Android APK build or a `.geode` build as proof of live game integration.
+**The current Android app is not yet a Geode Android Launcher fork and does not launch a modded game runtime.** APK inspection is read-only; it does not patch the selected APK. The mod prototype's toggles for Unlimited Resources and Complete Everything are not implemented, and Auto Play has not been validated in-game. Do not label any of these features complete until they are implemented and tested.
 
-## Standalone design
+## Correct implementation direction
 
-See [`docs/STANDALONE-LOADER-ARCHITECTURE.md`](docs/STANDALONE-LOADER-ARCHITECTURE.md) for the target architecture and acceptance criteria.
+Use the official [Geode Android Launcher source](https://github.com/geode-sdk/android-launcher) as the Android runtime/launch foundation rather than trying to inject into another app from a normal Android process. Its Android launcher handles native game startup, Geode setup, and game-specific compatibility work that this scaffold does not contain.
 
-A normal Android app cannot load native code into another installed app's private process simply by launching it. The intended route is a separate patched APK made from a user-selected local Geometry Dash APK. The patcher must preserve the source APK, verify supported package/version/ABI combinations, add the GD M native bridge, rebuild and sign the output, and reject unsupported inputs safely.
+The intended integration work is:
+1. Port/fork the official launcher source into this repository, retaining required upstream license notices.
+2. Rebrand the app and package identifiers to GD M / Judsz without breaking the native launcher lifecycle, game activity, update path, or save redirection.
+3. Package the GD M Geode mod with the launcher and install/update it into the launcher's own mod directory before starting the game.
+4. Replace the mod's placeholder menu with the requested floating M button and responsive blue/cyan panel.
+5. Implement each advertised toggle against real supported game APIs; do not show a toggle as functional until it has a working handler.
+6. Make launch behavior recoverable: provide an explicit-launch/safe-mode route if automatic launch crashes, and never delete or overwrite the user's original game APK or saves.
+7. Add automated source/manifest/package checks, then build and test on a real Android device separately.
 
-GD M must not download or redistribute proprietary Geometry Dash APKs/assets. Re-signing a modified APK may require uninstalling the original package first and can affect saves, purchases, updates, and online compatibility; back up important data before testing.
+See [the launcher integration notes](docs/ANDROID-LAUNCHER-INTEGRATION.md) for boundaries and acceptance criteria.
 
-## Latest successful build
+## Build status
 
-- **Status:** Successful — all CI jobs passed.
-- **Built:** 29 October 2026.
-- **Commit:** [`b89b590`](https://github.com/kdbroskii-droid/gdm-loader/commit/b89b590ab2381adb07e0e84874d81be88f49a44b).
-- **Workflow run:** [View build and test results](https://github.com/kdbroskii-droid/gdm-loader/actions/runs/40913841575).
-- **APK artifact:** [Download `gdm-loader-android-debug-apk`](https://github.com/kdbroskii-droid/gdm-loader/actions/runs/40913841575). Open the workflow run and use its **Artifacts** section. GitHub artifacts expire after a limited period.
+No new build has been run for this change. A successful build of the existing companion APK or a `.geode` file would not prove that the integrated launcher works.
 
-This confirms the companion Android debug APK builds and the automated tests pass. It does **not** confirm live in-game injection or mod functionality; see [Important current status](#important-current-status).
+## Legal and safety boundaries
 
-## Existing Android companion build
+GD M must not bundle or redistribute proprietary Geometry Dash APKs, assets, or game data. Users must obtain the game through legitimate channels. A modified/re-signed game package can affect updates, save data, purchases, and online compatibility; keep backups and preserve the original installation. GD M is not affiliated with RobTop Games or the Geode team.
 
-Requirements: Android SDK Platform 35, JDK 17, and Gradle 8.9.
-
-```sh
-gradle -p android-app :app:assembleDebug
-```
-
-Output: `android-app/app/build/outputs/apk/debug/app-debug.apk`.
-
-GitHub Actions builds the companion APK and uploads an artifact named `gdm-loader-android-debug-apk`.
-
-## Native and game integration
-
-The current native API reports `scaffold_only`. It must not report game bindings as verified until initialization inside the game process and real command dispatch have been tested. Mod-menu buttons must call the in-game runtime, not only JavaScript in the companion WebView.
-
-Autoplay is a later gameplay feature: it must consume live collision/object data from the currently loaded level, avoid screenshots/textures/colours/OCR, and be tested across game modes. A rough collision planner alone is not a finished autoplay system.
-
-## Validation
-
-```sh
-npm test
-```
-
-This runs repository smoke tests; it does not prove that the loader works inside Geometry Dash. Completion requires the acceptance tests in the architecture document, including a patched APK launching on a real device, a visible in-game GD M menu, and a test command producing a verified in-game change.
-
-GD M is an independent community project and is not affiliated with RobTop Games or the Geode team.
+The official launcher is licensed under the Boost Software License 1.0; any port must retain the applicable notices and license text. See the [upstream repository](https://github.com/geode-sdk/android-launcher) for its current source and license.
