@@ -58,46 +58,50 @@ public:
         }
 
         auto* autoLabel = CCLabelBMFont::create(
-            g_autoPlayEnabled ? "Auto Play: ON" : "Auto Play: OFF",
+            g_autoPlayEnabled ? "Auto Play Level: ON" : "Auto Play Level: OFF",
             "bigFont.fnt"
         );
-        auto* resourcesLabel = CCLabelBMFont::create(
-            "Unlimited Resources: not implemented", "bigFont.fnt"
-        );
-        auto* unlocksLabel = CCLabelBMFont::create(
-            "Complete Everything: not implemented", "bigFont.fnt"
-        );
+        auto* completeLabel = CCLabelBMFont::create("Auto Complete RobTop", "bigFont.fnt");
+        auto* gemsLabel = CCLabelBMFont::create("+500 Gems", "bigFont.fnt");
+        auto* unlocksLabel = CCLabelBMFont::create("Unlock All", "bigFont.fnt");
         auto* closeLabel = CCLabelBMFont::create("CLOSE", "bigFont.fnt");
 
         auto* menu = CCMenu::create();
-        if (!autoLabel || !resourcesLabel || !unlocksLabel || !closeLabel || !menu) {
+        if (!autoLabel || !completeLabel || !gemsLabel || !unlocksLabel || !closeLabel || !menu) {
             return false;
         }
 
         autoLabel->setScale(0.48f);
-        resourcesLabel->setScale(0.34f);
-        unlocksLabel->setScale(0.34f);
+        completeLabel->setScale(0.40f);
+        gemsLabel->setScale(0.48f);
+        unlocksLabel->setScale(0.48f);
         closeLabel->setScale(0.5f);
 
         auto* autoItem = CCMenuItemLabel::create(
             autoLabel, this, menu_selector(GDMOverlay::onToggleAutoPlay)
         );
-        auto* resourcesItem = CCMenuItemLabel::create(
-            resourcesLabel, this, menu_selector(GDMOverlay::onNotImplemented)
+        auto* completeItem = CCMenuItemLabel::create(
+            completeLabel, this, menu_selector(GDMOverlay::onAutoCompleteRobTop)
+        );
+        auto* gemsItem = CCMenuItemLabel::create(
+            gemsLabel, this, menu_selector(GDMOverlay::onAddGems)
         );
         auto* unlocksItem = CCMenuItemLabel::create(
-            unlocksLabel, this, menu_selector(GDMOverlay::onNotImplemented)
+            unlocksLabel, this, menu_selector(GDMOverlay::onUnlockAll)
         );
         auto* closeItem = CCMenuItemLabel::create(
             closeLabel, this, menu_selector(GDMOverlay::onClose)
         );
-        if (!autoItem || !resourcesItem || !unlocksItem || !closeItem) return false;
+        if (!autoItem || !completeItem || !gemsItem || !unlocksItem || !closeItem) {
+            return false;
+        }
 
         menu->addChild(autoItem);
-        menu->addChild(resourcesItem);
+        menu->addChild(completeItem);
+        menu->addChild(gemsItem);
         menu->addChild(unlocksItem);
         menu->addChild(closeItem);
-        menu->alignItemsVerticallyWithPadding(27.f);
+        menu->alignItemsVerticallyWithPadding(22.f);
         menu->setPosition(panelWidth / 2.f, panelHeight / 2.f - 10.f);
         panel->addChild(menu);
         return true;
@@ -119,6 +123,30 @@ public:
         FLAlertLayer::create(
             "GD M",
             "This feature is shown in the interface but is not implemented yet. It will not change resources or unlocks.",
+            "OK"
+        )->show();
+    }
+
+    void onAutoCompleteRobTop(CCObject*) {
+        FLAlertLayer::create(
+            "Auto Complete RobTop",
+            "Menu button added. The automatic RobTop-level completion logic is not implemented yet.",
+            "OK"
+        )->show();
+    }
+
+    void onAddGems(CCObject*) {
+        FLAlertLayer::create(
+            "+500 Gems",
+            "Menu button added. This prototype does not modify saved gems yet.",
+            "OK"
+        )->show();
+    }
+
+    void onUnlockAll(CCObject*) {
+        FLAlertLayer::create(
+            "Unlock All",
+            "Menu button added. Unlocking icons, colours and trails is not implemented yet.",
             "OK"
         )->show();
     }
