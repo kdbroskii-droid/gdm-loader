@@ -1,6 +1,10 @@
-name: Prepare GD M Android launcher APK
+name: Build Judsz Android APK
 
 on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -10,7 +14,7 @@ jobs:
   build-gdm-launcher:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout GD M project and native launcher submodule
+      - name: Checkout Judsz project and native launcher submodule
         uses: actions/checkout@v4
         with:
           path: gdm
@@ -27,7 +31,7 @@ jobs:
         with:
           packages: "platform-tools platforms;android-35 build-tools;35.0.0 ndk;27.2.12479018 cmake;3.22.1"
 
-      - name: Build GD M Geode mod
+      - name: Build Judsz Geode mod
         id: mod
         uses: geode-sdk/build-geode-mod@main
         with:
@@ -35,7 +39,7 @@ jobs:
           target: Android64
           sdk: given
 
-      - name: Integrate GD M mod and rebrand native launcher
+      - name: Integrate Judsz mod and rebrand native launcher
         shell: bash
         run: |
           set -euo pipefail
@@ -72,7 +76,7 @@ jobs:
           strings_file = root / "app/src/main/res/values/strings.xml"
           strings = strings_file.read_text()
           strings = re.sub(r'(<string name="app_name"[^>]*>).*?(</string>)',
-                           r'\1GD M / Judsz\2', strings, count=1)
+                           r'\1Judsz\2', strings, count=1)
           strings = re.sub(r'(<string name="launcher_title"[^>]*>).*?(</string>)',
                            r'\1GD M\2', strings, count=1)
           strings_file.write_text(strings)
@@ -93,7 +97,7 @@ jobs:
           chmod +x ./gradlew
           ./gradlew --no-daemon :app:assembleStandardDebug
 
-      - name: Upload GD M launcher APK
+      - name: Upload Judsz launcher APK
         uses: actions/upload-artifact@v4
         with:
           name: gdm-android-launcher-debug
