@@ -1,0 +1,4 @@
+[submodule "native-launcher"]
+	path = native-launcher
+	url = https://github.com/geode-sdk/android-launcher.git
+	branch = 1.9.0
