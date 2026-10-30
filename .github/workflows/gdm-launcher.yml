@@ -56,7 +56,18 @@ jobs:
           new = 'applicationId = "com.judsz.gdm"'
           if old not in gradle:
               raise SystemExit("Could not find upstream standard applicationId; launcher source layout changed.")
-          gradle_file.write_text(gradle.replace(old, new, 1))
+          gradle = gradle.replace(old, new, 1)
+          # The upstream launcher pins NDK 30, whose linker fails on this runner.
+          # Use the NDK version installed by the workflow instead.
+          gradle, ndk_count = re.subn(
+              r'ndkVersion = "[^"]+"',
+              'ndkVersion = "27.2.12479018"',
+              gradle,
+              count=1
+          )
+          if ndk_count != 1:
+              raise SystemExit("Could not find upstream ndkVersion declaration.")
+          gradle_file.write_text(gradle)
 
           strings_file = root / "app/src/main/res/values/strings.xml"
           strings = strings_file.read_text()
