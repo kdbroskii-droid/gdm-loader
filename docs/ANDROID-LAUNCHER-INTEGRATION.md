@@ -8,7 +8,7 @@ GD M is an Android app which launches the compatible Geometry Dash runtime with 
 
 Use the official [Geode Android Launcher](https://github.com/geode-sdk/android-launcher) as the source of truth for Android native launch, game activity setup, Geode installation/update, save redirection, ABI handling, and recovery behavior. The upstream project is licensed under Boost Software License 1.0. Preserve the full license and upstream copyright notices in any fork or derivative work. Track an explicit upstream tag/commit; do not silently follow an unpinned `main` branch in a reproducible release.
 
-## Required integration tasks
+## Workflow now committed\n\nThe workflow at `.github/workflows/gdm-launcher.yml` checks out the pinned upstream launcher tag `1.9.0`, builds the GD M mod for Android64, places the resulting `.geode` package in the upstream launcher's internal `assets/mods` directory, changes the app ID/labels, and builds an installable debug APK artifact. This workflow has **not** been run, and the APK has not been built or tested. The old WebView app is still separate. The custom mod features below remain incomplete.\n\n## Remaining integration tasks
 
 - [ ] Fork/port the upstream launcher source and Gradle wrapper into this repository.
 - [ ] Rebrand launcher title, icons, theme, application ID, deep-link scheme, and user-facing strings to GD M / Judsz.
